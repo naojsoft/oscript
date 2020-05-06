@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# check_ope.py -- utility to check legacy OPE (observation) files
+# check_ope -- utility to check legacy OPE (observation) files
 #
 import sys, os
 
