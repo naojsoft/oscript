@@ -1,15 +1,13 @@
 OScript ABOUT
------------
-oscript is a set of Python modules for implementing the observation scripting
-language used at Subaru Telescope, NAOJ.
+=============
+oscript is a set of Python modules for implementing the observation scripting language used at Subaru Telescope, NAOJ.
 
 COPYRIGHT AND LICENSE
 ---------------------
 Copyright (C) 2014-2020 Subaru Telescope, National Astronomical
   Observatory of Japan.  All rights reserved.
 
-oscript is distributed under an open-source BSD licence.  Please see the
-file LICENSE.txt in the top-level directory for details.
+oscript is distributed under an open-source BSD licence.  Please see the file LICENSE.txt in the top-level directory for details.
 
 REQUIREMENTS
 ------------

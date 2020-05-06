@@ -35,7 +35,8 @@ setup(
     package_data = { #'oscript.doc': ['manual/*.html'],
                      },
     python_requires = '>=3.5',
-    install_requires = 'ply',  # & g2cam!
+    # NOTE: also requires g2cam (https://github.com/naojsoft/g2cam)
+    install_requires = 'ply>=3.11',
     scripts = ['scripts/check_ope', 'scripts/stubgen'],
     classifiers = [
         "License :: OSI Approved :: BSD License",
