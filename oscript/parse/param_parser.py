@@ -14,6 +14,9 @@ from oscript.parse.sk_common import ASTNode
 
 from g2base import Bunch
 
+yacc_tab_module = 'param_parse_tab'
+
+
 ##################################################################
 # !!! NOTE !!! NOTE !!! NOTE !!!
 # *** When you update this file, you need to update the class
@@ -34,12 +37,15 @@ class paramParser(object):
         ('right', 'UMINUS'),         # Ficticious token, unary minus operator
     )
 
-    def __init__(self, lexer, logger=None):
+    def __init__(self, lexer, logger=None,
+                 debug=False, parsetab=yacc_tab_module):
         super(paramParser, self).__init__()
 
         if not logger:
             logger = logging.getLogger('sk.parser')
         self.logger = logger
+        self._debug = debug
+        self._parsetab = parsetab
 
         # Share lexer tokens
         self.lexer = lexer
@@ -254,9 +260,11 @@ class paramParser(object):
         self.lexer.reset(lineno=lineno)
 
 
-    def build(self, **kwdargs):
+    def build(self):
         self.param_parser = yacc.yacc(module=self, start='param_list',
-                                      errorlog=self.logger, **kwdargs)
+                                      debug=self._debug,
+                                      tabmodule=self._parsetab,
+                                      errorlog=self.logger)
 
 
     def parse_params(self, buf):

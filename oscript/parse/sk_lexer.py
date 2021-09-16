@@ -287,17 +287,20 @@ class skScanner(object):
         #t.skip(1)
 
 
-    def build(self, **kwdargs):
-        #lexer = lex.lex(debug=0, lextab='sk_lexer_tab')
-        self.lexer = lex.lex(object=self, **kwdargs)
+    def build(self):
+        self.lexer = lex.lex(object=self,
+                             debug=self._debug, lextab=self._lextab)
 
-    def __init__(self, logger=None, **kwdargs):
+    def __init__(self, logger=None, debug=False, lextab='sk_scan_tab'):
+        super(skScanner, self).__init__()
 
         if not logger:
             logger = logging.getLogger('sk.lexer')
         self.logger = logger
+        self._debug = debug
+        self._lextab = lextab
 
-        self.build(**kwdargs)
+        self.build()
         self.reset()
 
     def reset(self, lineno=1):
@@ -373,7 +376,7 @@ def main(options, args):
     logger = logging.getLogger('sk_lexer')
 
     # Create the scanner
-    scanner = skScanner(logger=logger, debug=0, lextab='scan_tab')
+    scanner = skScanner(logger=logger)
 
     if len(args) > 0:
         for filename in args:

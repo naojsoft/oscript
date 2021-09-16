@@ -13,7 +13,7 @@ from oscript.DotParaFiles import NestedException
 
 from oscript.parse import para_lexer
 
-yacc_tab_module = 'paraParser'
+yacc_tab_module = 'PARA_parse_tab'
 
 class DotParaFileException(NestedException.NestedException):
     pass
@@ -259,20 +259,21 @@ class paraParser(object):
             self.parser.restart()
 
 
-    def __init__(self, lexer, logger=None, tabmodule=yacc_tab_module,
-                 **kwdargs):
+    def __init__(self, lexer, logger=None, debug=False,
+                 parsetab=yacc_tab_module):
 
         # Share lexer tokens
         self.lexer = lexer
         self.tokens = lexer.getTokens()
 
-        self.tabmodule = tabmodule
-
         if not logger:
             logger = logging.getLogger('para.parser')
         self.logger = logger
+        self._debug = debug
+        self._parsetab = parsetab
+        self.parser = None
 
-        self.build(tabmodule=self.tabmodule, **kwdargs)
+        self.build()
         self.reset()
 
 
@@ -285,9 +286,10 @@ class paraParser(object):
         self.lexer.reset(lineno=lineno)
 
 
-    def build(self, **kwdargs):
+    def build(self):
         self.parser = yacc.yacc(module=self, start='object_def',
-                                errorlog=self.logger, **kwdargs)
+                                debug=self._debug, tabmodule=self._parsetab,
+                                errorlog=self.logger)
 
 
     def parse(self, buf, startline=1):
@@ -338,10 +340,9 @@ def main(options, args):
     # TODO: configure the logger
     logger = logging.getLogger('para.parser')
 
-    lexer = para_lexer.paraScanner(logger=logger, debug=0)
+    lexer = para_lexer.paraScanner(logger=logger)
 
-    parser = paraParser(lexer, logger=logger, debug=0,
-                        tabmodule=yacc_tab_module)
+    parser = paraParser(lexer, logger=logger)
 
     if len(args) > 0:
         for filename in args:

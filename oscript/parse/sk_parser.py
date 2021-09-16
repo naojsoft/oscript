@@ -24,8 +24,10 @@ from g2base import Bunch
 
 class opeParser(paramParser):
 
-    def __init__(self, lexer, logger=None):
-        super(opeParser, self).__init__(lexer, logger=logger)
+    def __init__(self, lexer, logger=None,
+                 debug=False, parsetab='ope_command_parse_tab'):
+        super(opeParser, self).__init__(lexer, logger=logger,
+                                        debug=debug, parsetab=parsetab)
 
         self.tokens.remove('UMINUS')
         self.tokens.extend(['EXEC'])
@@ -46,9 +48,11 @@ class opeParser(paramParser):
         """dd_cmd : EXEC factor factor param_list"""
         p[0] = ASTNode('exec', p[2], p[3], p[4], None)
 
-    def build(self, **kwdargs):
+    def build(self):
         self.ope_parser = yacc.yacc(module=self, start='opecmd',
-                                    errorlog=self.logger, **kwdargs)
+                                    debug=self._debug,
+                                    tabmodule=self._parsetab,
+                                    errorlog=self.logger)
 
     def parse_opecmd(self, buf, startline=1):
 
@@ -96,9 +100,8 @@ class opeParser(paramParser):
 
     def parse_opefile(self, opepath):
 
-        in_f = open(opepath, 'r')
-        opebuf = in_f.read()
-        in_f.close()
+        with open(opepath, 'r') as in_f:
+            opebuf = in_f.read()
 
         res = self.parse_opebuf(opebuf)
         res.filepath = opepath
@@ -108,8 +111,10 @@ class opeParser(paramParser):
 
 class skParser(paramParser):
 
-    def __init__(self, lexer, logger=None):
-        super(skParser, self).__init__(lexer, logger=logger)
+    def __init__(self, lexer, logger=None,
+                 debug=False, parsetab='sk_parse_tab'):
+        super(skParser, self).__init__(lexer, logger=logger,
+                                       debug=debug, parsetab=parsetab)
 
         self.tokens.remove('UMINUS')
         self.tokens.extend(['START', 'MAINSTART', 'MAINEND', 'END',
@@ -435,9 +440,10 @@ class skParser(paramParser):
         """expressions : expression"""
         p[0] = [p[1]]
 
-    def build(self, **kwdargs):
+    def build(self):
         self.parser = yacc.yacc(module=self, start='program',
-                                errorlog=self.logger, **kwdargs)
+                                debug=self._debug, tabmodule=self._parsetab,
+                                errorlog=self.logger)
         self.p_parser = paramParser(self.lexer, logger=self.logger)
         self.p_parser.build()
         self.param_parser = self.p_parser.param_parser
@@ -590,7 +596,8 @@ def main(options, args):
         parser = opeParser(lexer, logger=logger)
     else:
         parser = skParser(lexer, logger=logger)
-    parser.build(debug=False, tabmodule='parser_tab')
+
+    parser.build()
     parser.reset()
 
     if len(args) > 0:

@@ -37,9 +37,9 @@ class ParaValidator(object):
         self.logger = logger
         self.parser = CommandParser.CommandParser()
 
-        self.para_lexer = para_lexer.paraScanner(logger=logger, debug=0)
+        self.para_lexer = para_lexer.paraScanner(logger=logger, debug=False)
         self.para_parser = paraParser(self.para_lexer, logger=logger,
-                                      debug=0)
+                                      debug=False)
 
         self.para = Bunch.threadSafeBunch()
         self.userRegMap = Bunch.threadSafeBunch()

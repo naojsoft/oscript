@@ -383,6 +383,36 @@ def getCmd(opebuf, cmdstr, include_dirs):
         raise OPEerror("Can't extract command: %s" % str(e))
 
 
+def get_targets(ope_buf, prm_dirs):
+
+    re_obj = re.compile(r'^.*OBJECT=\"?([\w\d_]+)\"?(.*)$', re.IGNORECASE)
+    re_eqx = re.compile(r'^.*\s+EQUINOX=\"?([\d\.]+)\"?(.*)$', re.IGNORECASE)
+    re_ra = re.compile(r'^.*\s+RA=([\d\.]+)(.*)$', re.IGNORECASE)
+    re_dec = re.compile(r'^.*\s+DEC=([\d\+\-\.]+)(.*)$', re.IGNORECASE)
+
+    res = get_vars_ope(ope_buf, prm_dirs)
+    tgt_list = []
+
+    for key, line in res.items():
+        m_obj = re_obj.match(line)
+        if m_obj is not None:
+            tgtname = key
+            objname = m_obj.group(1)
+            m_ra = re_ra.match(line)
+            m_dec = re_dec.match(line)
+            m_eqx = re_eqx.match(line)
+            if m_ra is not None and m_dec is not None:
+                ra = m_ra.group(1)
+                dec = m_dec.group(1)
+                if m_eqx is not None:
+                    eq = "2000"
+                else:
+                    eq = m_eqx.group(1)
+
+                tgt_list.append((tgtname, objname, ra, dec, eq))
+
+    return tgt_list
+
 
 def main(options, args):
     with open(options.opefile, 'r') as in_f:

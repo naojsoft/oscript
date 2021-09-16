@@ -157,7 +157,7 @@ class TestSkLexer(Framework):
         super(TestSkLexer, self).__init__(*args, **kwdargs)
 
     def setUp(self):
-        lexer = sk_lexer.skScanner(debug=0, lextab='scan_tab',
+        lexer = sk_lexer.skScanner(debug=False, lextab='scan_tab',
                                    logger=self.logger)
         self.setparser(lexer.scan_skfile)
 
@@ -188,10 +188,9 @@ class TestSkLexer(Framework):
 class TestSkParser(Framework):
 
     def setUp(self):
-        lexer = sk_lexer.skScanner(debug=0, lextab='scan_tab',
-                                   logger=self.logger)
+        lexer = sk_lexer.skScanner(logger=self.logger, debug=False)
         parser = sk_parser.skParser(lexer, logger=self.logger)
-        parser.build(debug=0, tabmodule='parser_tab')
+        parser.build()
         parser.reset()
         self.setparser(parser.parse_skfile)
 
@@ -222,10 +221,9 @@ class TestSkParser(Framework):
 class TestSkDecoder(Framework):
 
     def setUp(self):
-        lexer = sk_lexer.skScanner(debug=0, lextab='scan_tab',
-                                   logger=self.logger)
+        lexer = sk_lexer.skScanner(logger=self.logger, debug=False)
         self.parser = sk_parser.skParser(lexer, logger=self.logger)
-        self.parser.build(debug=0, tabmodule='parser_tab')
+        self.parser.build()
         self.parser.reset()
         self.sk_bank = sk_interp.skBank(self.skbase)
 

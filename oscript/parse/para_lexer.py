@@ -8,7 +8,7 @@ from ply import lex
 
 from g2base import Bunch, ssdlog
 
-lex_tab_module  = 'paraScan'
+lex_tab_module = 'PARA_scan_tab'
 
 #===================================================#
 # PARA file Lexer
@@ -104,24 +104,25 @@ class paraScanner(object):
         self.logger.error("Illegal character in input '%s'" % (t.value[0]))
         t.skip(1)
 
-    def build(self, **kwdargs):
-        self.lexer = lex.lex(object=self, **kwdargs)
+    def build(self):
+        self.lexer = lex.lex(object=self, debug=self._debug,
+                             lextab=self._lextab)
 
-
-    def __init__(self, logger=None, lextab=lex_tab_module, **kwdargs):
+    def __init__(self, logger=None, debug=False, lextab=lex_tab_module):
 
         if not logger:
             logger = logging.getLogger('para.lexer')
         self.logger = logger
+        self._debug = debug
+        self._lextab = lextab
+        self.lexer = None
 
         # these variables are used to determine
         # if the token we are looking is an ID
         self.isTokenAnID = True
         self.isTokenWithinParenthesis = False
 
-        self.lextab = lextab
-
-        self.build(lextab=self.lextab, **kwdargs)
+        self.build()
         self.reset()
 
     def reset(self, lineno=1):
@@ -187,7 +188,7 @@ def main(options, args):
     logger = logging.getLogger('para.lexer')
 
     # Create the scanner
-    scanner = paraScanner(logger=logger, debug=0, lextab=lex_tab_module)
+    scanner = paraScanner(logger=logger)
 
     if len(args) > 0:
         for filename in args:

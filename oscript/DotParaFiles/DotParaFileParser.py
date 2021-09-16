@@ -563,8 +563,8 @@ def main(options, args):
     logger.addHandler(logging.StreamHandler())
     logger.setLevel(logging.WARN)
 
-    lexer = para_lexer.paraScanner(logger=logger, debug=0)
-    parser = paraParser(lexer, logger=logger, debug=0)
+    lexer = para_lexer.paraScanner(logger=logger, debug=False)
+    parser = paraParser(lexer, logger=logger, debug=False)
 
     if len(args) > 0:
         for filename in args:
@@ -593,7 +593,7 @@ def main(options, args):
                 continue
 
             objectName = pattern.match(fname).group(1)
-            # parser = yacc.yacc(debug=0)
+            # parser = yacc.yacc(debug=False)
             buf = ''
             print("#", "-" * 30, fname)
             fh = open(os.path.join(TSCdir, fname),"r")

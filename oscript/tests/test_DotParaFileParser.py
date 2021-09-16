@@ -76,8 +76,8 @@ FOO  \
 
 class ParameterHandlerValidationTestCase(unittest.TestCase):
     def setUp(self):
-        self.lexer = para_lexer.paraScanner(logger=logger, debug=0)
-        self.parser = paraParser(self.lexer, logger=logger, debug=0)
+        self.lexer = para_lexer.paraScanner(logger=logger, debug=False)
+        self.parser = paraParser(self.lexer, logger=logger, debug=False)
 
         self.paramObj = self.parser.parse_buf(test_str1)
         self.validator = ParameterHandler(self.paramObj)
@@ -135,8 +135,8 @@ class ParameterHandlerValidationTestCase(unittest.TestCase):
 
 class ParameterHandlerPopulateTestCase(unittest.TestCase):
     def setUp(self):
-        self.lexer = para_lexer.paraScanner(logger=logger, debug=0)
-        self.parser = paraParser(self.lexer, logger=logger, debug=0)
+        self.lexer = para_lexer.paraScanner(logger=logger, debug=False)
+        self.parser = paraParser(self.lexer, logger=logger, debug=False)
 
         self.paramObj = self.parser.parse_buf(test_str1)
         self.validator = ParameterHandler(self.paramObj)
@@ -203,8 +203,8 @@ FRAME8 TYPE=CHAR DEFAULT=&GET_F_NO[SPCAM A] NOP=NOP
 FRAME9 TYPE=CHAR DEFAULT=&GET_F_NO[SPCAM A] NOP=NOP
 """
     def testFuncRef(self):
-        lexer = para_lexer.paraScanner(logger=logger, debug=0)
-        parser = paraParser(lexer, logger=logger, debug=0)
+        lexer = para_lexer.paraScanner(logger=logger, debug=False)
+        parser = paraParser(lexer, logger=logger, debug=False)
 
         paramObj = parser.parse_buf(FuncRefTestCase.funcref_sample)
         paramDefs = paramObj.paramDict
@@ -215,8 +215,8 @@ FRAME9 TYPE=CHAR DEFAULT=&GET_F_NO[SPCAM A] NOP=NOP
 class TestParaFileParse(unittest.TestCase):
     def testParse(self):
         t_str = 'DUMMY TYPE=CHAR SET=DUMMY DEFAULT=DUMMY\n'
-        lexer = para_lexer.paraScanner(logger=logger, debug=0)
-        parser = paraParser(lexer, logger=logger, debug=0)
+        lexer = para_lexer.paraScanner(logger=logger, debug=False)
+        parser = paraParser(lexer, logger=logger, debug=False)
 
         paramObj = parser.parse_buf(t_str)
         paramDefs = paramObj.paramDict
@@ -224,8 +224,8 @@ class TestParaFileParse(unittest.TestCase):
 class TestNumericFormatString(unittest.TestCase):
     def testParse1(self):
         t_str = '''GAIN TYPE=NUMBER FORMAT=%ld DEFAULT=-7 NOP=NOP\n'''
-        lexer = para_lexer.paraScanner(logger=logger, debug=0)
-        parser = paraParser(lexer, logger=logger, debug=0)
+        lexer = para_lexer.paraScanner(logger=logger, debug=False)
+        parser = paraParser(lexer, logger=logger, debug=False)
 
         paramObj = parser.parse_buf(t_str)
         paramDefs = paramObj.paramDict
@@ -234,8 +234,8 @@ class TestNumericFormatString(unittest.TestCase):
 
     def testParse2(self):
         t_str = '''BINMODE TYPE=NUMBER FORMAT=%-5.5d  MIN=-10  DEFAULT=9 NOP=NOP\n'''
-        lexer = para_lexer.paraScanner(logger=logger, debug=0)
-        parser = paraParser(lexer, logger=logger, debug=0)
+        lexer = para_lexer.paraScanner(logger=logger, debug=False)
+        parser = paraParser(lexer, logger=logger, debug=False)
 
         paramObj = parser.parse_buf(t_str)
         paramDefs = paramObj.paramDict
@@ -244,8 +244,8 @@ class TestNumericFormatString(unittest.TestCase):
 
     def testParse3(self):
         t_str = '''PARTMODE TYPE=NUMBER FORMAT=%8.10f DEFAULT=-8 NOP=NOP\n'''
-        lexer = para_lexer.paraScanner(logger=logger, debug=0)
-        parser = paraParser(lexer, logger=logger, debug=0)
+        lexer = para_lexer.paraScanner(logger=logger, debug=False)
+        parser = paraParser(lexer, logger=logger, debug=False)
 
         paramObj = parser.parse_buf(t_str)
         paramDefs = paramObj.paramDict
@@ -261,8 +261,8 @@ class QuatedListTestCase(unittest.TestCase):
         NOP=NOP
     '''
     def testParse(self):
-        lexer = para_lexer.paraScanner(logger=logger, debug=0)
-        parser = paraParser(lexer, logger=logger, debug=0)
+        lexer = para_lexer.paraScanner(logger=logger, debug=False)
+        parser = paraParser(lexer, logger=logger, debug=False)
 
         paramObj = parser.parse_buf(QuatedListTestCase.t_str)
         paramDefs = paramObj.paramDict
@@ -278,8 +278,8 @@ class NOPTestCase(unittest.TestCase):
         UNIT   TYPE=CHAR DEFAULT=NOP NOP=NOP SET=ALL,CAMVME,SPGVME,UNA3,TC1,TC2,TC3,UNA7,ARYELEC,TM1,TM2,CAM_MTR,SPG_MTR,VAC1,UTSTRIP,UNB8
         CMD    TYPE=CHAR DEFAULT=NOP NOP=NOP SET=ON,OFF,STATUS
         '''
-        lexer = para_lexer.paraScanner(logger=logger, debug=0)
-        parser = paraParser(lexer, logger=logger, debug=0)
+        lexer = para_lexer.paraScanner(logger=logger, debug=False)
+        parser = paraParser(lexer, logger=logger, debug=False)
 
         paramObj = parser.parse_buf(t_str)
         paramDefs = paramObj.paramDict
@@ -297,8 +297,8 @@ class NOPTestCase(unittest.TestCase):
         t_str = '''
         UNIT   TYPE=CHAR DEFAULT=NOP NOP=NOP SET=ALL,CAMVME,SPGVME,UNA3,TC1,TC2,TC3,UNA7,ARYELEC,TM1,TM2,CAM_MTR,SPG_MTR,VAC1,UTSTRIP,UNB8,NOP
         '''
-        lexer = para_lexer.paraScanner(logger=logger, debug=0)
-        parser = paraParser(lexer, logger=logger, debug=0)
+        lexer = para_lexer.paraScanner(logger=logger, debug=False)
+        parser = paraParser(lexer, logger=logger, debug=False)
 
         paramObj = parser.parse_buf(t_str)
         paramDefs = paramObj.paramDict

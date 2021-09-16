@@ -59,22 +59,22 @@ class skBank(object):
         self.sk_basedir = sk_basedir
         self.cache = Bunch.threadSafeBunch()
 
-        lexer = sk_lexer.skScanner(logger=self.logger, debug=0,
+        lexer = sk_lexer.skScanner(logger=self.logger, debug=False,
                                    lextab='scan1_tab')
         self.param_parser = sk_parser.paramParser(lexer, logger=self.logger)
-        self.param_parser.build(debug=0, tabmodule='param_parser_tab')
+        self.param_parser.build()
         self.param_parser.reset()
 
-        lexer = sk_lexer.skScanner(logger=self.logger, debug=0,
+        lexer = sk_lexer.skScanner(logger=self.logger, debug=False,
                                    lextab='scan2_tab')
         self.ope_parser = sk_parser.opeParser(lexer, logger=self.logger)
-        self.ope_parser.build(debug=0, tabmodule='ope_parser_tab')
+        self.ope_parser.build()
         self.ope_parser.reset()
 
-        lexer = sk_lexer.skScanner(logger=self.logger, debug=0,
+        lexer = sk_lexer.skScanner(logger=self.logger, debug=False,
                                    lextab='scan3_tab')
         self.sk_parser = sk_parser.skParser(lexer, logger=self.logger)
-        self.sk_parser.build(debug=0, tabmodule='sk_parser_tab')
+        self.sk_parser.build()
         self.sk_parser.reset()
 
 
@@ -349,7 +349,6 @@ class Evaluator(object):
         self.spc_dict = { '&': (re_frame, self.frame_id_source.get),
                           '!': (re_token, self.status.get),
                           '$': (re_token, self.variables.get),
-                          # This should raise an error--we can't support interpolated regrefs
                           '@': (re_token, self.registers.get),
                           }
 
@@ -625,8 +624,8 @@ class Evaluator(object):
         # Evaluate all expressions and assign values to variables in the
         # result dictionary.
         # ?res = caselessDict()
-        # UPDATE: Currently, parser is delivering param_lists with lower-case converted
-        # identifiers
+        # UPDATE: Currently, parser is delivering param_lists with
+        # lower-case converted identifiers
         res = {}
 
         for keyval in ast.items:
@@ -1275,12 +1274,26 @@ class Decoder(object):
 
 def decode_abscmd(cmdstr, envstr, sk_bank, logger):
 
-    import remoteObjects as ro
+    from g2base.remoteObjects import remoteObjects as ro
     ro.init()
 
     fakeStatus = {
-        'STATL.TSC_F_SELECT': 'CS_IR',
-        }
+        'STATL.TSC_F_SELECT': 'NS_IR',
+        'FITS.VGW.IMGROT_FLG': '00',
+        'VGWQ.AGP.ABS.RA': '123645.917',
+        'VGWQ.AGP.ABS.DEC': '+623151.17',
+        'VGWQ.AGP.EQUINOX': '2000.0',
+        'STATS.RA': '010645.101',
+        'STATS.DEC': '+194643.01',
+        'STATS.AZ': '60.0',
+        'TSCV.WINDSDRV': '08',
+        'STATL.TELDRIVE': 'Tracking',
+        'STATS.EQUINOX': '2000.0000',
+        'FITS.SBR.MAINOBCP': 'IRCS',
+        'VGWQ.AGE.SKYLVL': '3192.1',
+        'TSCL.Z': '7.35',
+        'TSCL.INSROTPA': '71.834478',
+    }
 
     # Create top level logger.
     logger = ssdlog.make_logger('sk_decode', options)
