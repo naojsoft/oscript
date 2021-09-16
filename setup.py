@@ -37,7 +37,7 @@ setup(
     python_requires = '>=3.5',
     # NOTE: also requires g2cam (https://github.com/naojsoft/g2cam)
     install_requires = 'ply>=3.11',
-    scripts = ['scripts/check_ope', 'scripts/stubgen'],
+    scripts = ['scripts/check_ope'],
     classifiers = [
         "License :: OSI Approved :: BSD License",
         "Operating System :: MacOS :: MacOS X",
