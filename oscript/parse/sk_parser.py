@@ -8,7 +8,6 @@ import logging
 import ply.yacc as yacc
 from ply.lex import LexToken
 
-from oscript.parse import sk_lexer
 from oscript.parse import sk_common
 from oscript.parse.sk_common import ASTNode
 from oscript.parse.param_parser import paramParser, skParseError
@@ -584,105 +583,5 @@ def collect_params(prmbuf):
                 raise skParseError("Error parsing parameter section: %s" % (str(e)))
     return params, param_lst, patterns
 
-
-def main(options, args):
-
-    # TODO: configure the logger
-    logger = logging.getLogger('sk.parser')
-
-    lexer = sk_lexer.skScanner(logger=logger, debug=False, lextab='scan_tab')
-
-    if options.ope:
-        parser = opeParser(lexer, logger=logger)
-    else:
-        parser = skParser(lexer, logger=logger)
-
-    parser.build()
-    parser.reset()
-
-    if len(args) > 0:
-        for filename in args:
-            try:
-                if options.ope:
-                    res = parser.parse_opefile(filename)
-                else:
-                    res = parser.parse_skfile(filename)
-
-                if res.errors > 0:
-                    for errbnch in res.errinfo:
-                        print("%d: %s (%s)" % (errbnch.lineno, errbnch.errstr,
-                                               errbnch.token))
-                        print(errbnch.verbose)
-                        print("")
-
-                elif (res.ast != None) and options.verbose:
-                    res.ast.printAST()
-
-                print("%s: %d errors" % (filename, res.errors))
-
-            except Exception as e:
-                # Print error message and continue to next file
-                print(str(e))
-
-    else:
-        buf = sys.stdin.read()
-        try:
-            res = parser.parse_skbuf(buf)
-
-            if res.errors > 0:
-                for errbnch in res.errinfo:
-##                     print("%d: %s (%s)" % (errbnch.lineno, errbnch.errstr,
-##                                            errbnch.token))
-                    print(errbnch.verbose)
-                    print("")
-
-            elif (res.ast != None) and options.verbose:
-                res.ast.printAST()
-
-                print("%d errors" % (res.errors))
-                print("Error info: %s" % (res.errinfo))
-
-        except skParseError as e:
-            # Print error message
-            print(str(e))
-
-
-if __name__ == '__main__':
-    # Parse command line options
-    from optparse import OptionParser
-
-    usage = "usage: %prog [options] [file ...]"
-    optparser = OptionParser(usage=usage, version=('%%prog'))
-
-    optparser.add_option("--debug", dest="debug", default=False,
-                         action="store_true",
-                         help="Enter the pdb debugger on main()")
-    optparser.add_option("--ope", dest="ope", default=False,
-                         action="store_true",
-                         help="Parse .ope file instead of .sk file")
-    optparser.add_option("--profile", dest="profile", action="store_true",
-                         default=False,
-                         help="Run the profiler on main()")
-    optparser.add_option("-v", "--verbose", dest="verbose", default=False,
-                         action="store_true",
-                         help="Turn on verbose output")
-
-    (options, args) = optparser.parse_args(sys.argv[1:])
-
-    # Are we debugging this?
-    if options.debug:
-        import pdb
-
-        pdb.run('main(options, args)')
-
-    # Are we profiling this?
-    elif options.profile:
-        import profile
-
-        print("%s profile:" % sys.argv[0])
-        profile.run('main(options, args)')
-
-    else:
-        main(options, args)
 
 #END

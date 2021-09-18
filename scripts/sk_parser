@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+#
+# sk_parser -- OScript (SOSS Skeleton) file parser
+#
+import sys
+from argparse import ArgumentParser
+
+from oscript.parse import sk_lexer
+from oscript.parse.sk_parser import opeParser, skParser
+from g2base import ssdlog
+
+
+def main(options, args):
+
+    # configure the logger
+    logger = ssdlog.make_logger('sk_parser', options)
+
+    lexer = sk_lexer.skScanner(logger=logger, debug=False, lextab='scan_tab')
+
+    if options.ope:
+        parser = opeParser(lexer, logger=logger)
+    else:
+        parser = skParser(lexer, logger=logger)
+
+    parser.build()
+    parser.reset()
+
+    if len(args) > 0:
+        for filename in args:
+            try:
+                if options.ope:
+                    res = parser.parse_opefile(filename)
+                else:
+                    res = parser.parse_skfile(filename)
+
+                if res.errors > 0:
+                    for errbnch in res.errinfo:
+                        print("%d: %s (%s)" % (errbnch.lineno, errbnch.errstr,
+                                               errbnch.token))
+                        print(errbnch.verbose)
+                        print("")
+
+                elif (res.ast != None) and options.verbose:
+                    res.ast.printAST()
+
+                print("%s: %d errors" % (filename, res.errors))
+
+            except Exception as e:
+                # Print error message and continue to next file
+                print(str(e))
+
+    else:
+        buf = sys.stdin.read()
+        try:
+            res = parser.parse_skbuf(buf)
+
+            if res.errors > 0:
+                for errbnch in res.errinfo:
+##                     print("%d: %s (%s)" % (errbnch.lineno, errbnch.errstr,
+##                                            errbnch.token))
+                    print(errbnch.verbose)
+                    print("")
+
+            elif (res.ast != None) and options.verbose:
+                res.ast.printAST()
+
+                print("%d errors" % (res.errors))
+                print("Error info: %s" % (res.errinfo))
+
+        except skParseError as e:
+            # Print error message
+            print(str(e))
+
+
+if __name__ == '__main__':
+    # Parse command line options
+    argparser = ArgumentParser(description="oscript (skeleton) file parser")
+
+    argparser.add_argument("--ope", dest="ope", default=False,
+                           action="store_true",
+                           help="Parse .ope file instead of .sk file")
+    argparser.add_argument("-v", "--verbose", dest="verbose", default=False,
+                           action="store_true",
+                           help="Turn on verbose output")
+    ssdlog.addlogopts(argparser)
+
+    options, args = argparser.parse_known_args(sys.argv[1:])
+
+    main(options, args)
