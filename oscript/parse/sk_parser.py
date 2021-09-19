@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-#
-# sk_parser.py -- OScript (SOSS Skeleton) file parser
-#
+"""
+sk_parser.py -- oscript ("skeleton") file parser
+"""
 import sys
 import logging
 
@@ -582,6 +581,3 @@ def collect_params(prmbuf):
             except Exception as e:
                 raise skParseError("Error parsing parameter section: %s" % (str(e)))
     return params, param_lst, patterns
-
-
-#END

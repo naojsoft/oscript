@@ -1,7 +1,6 @@
-#!/usr/bin/env python
-#
-# param_parser.py -- SOSS Skeleton file parser
-#
+"""
+param_parser.py -- oscript ("skeleton") file base class parser
+"""
 import sys
 import logging
 
@@ -292,5 +291,3 @@ class paramParser(object):
             pass
 
         return (self.errors, ast, self.errinfo)
-
-# END

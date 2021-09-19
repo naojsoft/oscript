@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# sk_parser -- OScript (SOSS Skeleton) file parser
+# sk_parser -- oscript ("skeleton") file parser
 #
 import sys
 from argparse import ArgumentParser

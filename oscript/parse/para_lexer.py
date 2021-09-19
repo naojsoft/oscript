@@ -1,12 +1,11 @@
-#!/usr/bin/env python
-#
-# para_lexer.py -- SOSS PARA file lexer
-#
+"""
+para_lexer.py -- SOSS PARA file lexer
+"""
 import logging
 
 from ply import lex
 
-from g2base import Bunch, ssdlog
+from g2base import Bunch
 
 lex_tab_module = 'PARA_scan_tab'
 
@@ -175,83 +174,3 @@ class paraScanner(object):
         res.filepath = parapath
 
         return res
-
-
-def printTokens(tokens):
-    for token in tokens:
-        print(token)
-
-
-def main(options, args):
-
-    # TODO: configure the logger
-    logger = logging.getLogger('para.lexer')
-
-    # Create the scanner
-    scanner = paraScanner(logger=logger)
-
-    if len(args) > 0:
-        for filename in args:
-            try:
-                res = scanner.scan_file(filename)
-
-                if (res.tokens != None) and options.verbose:
-                    printTokens(res.tokens)
-
-                print("%s: %d errors" % (filename, res.errors))
-
-            except paraScanError as e:
-                # Print error message and continue to next file
-                print(str(e))
-
-    else:
-        buf = sys.stdin.read()
-        try:
-            res = scanner.scan_buf(buf)
-
-            if (res.tokens != None) and options.verbose:
-                printTokens(res.tokens)
-
-                print("%d errors" % (res.errors))
-
-        except paraScanError as e:
-            # Print error message
-            print(str(e))
-
-
-if __name__ == '__main__':
-    import sys
-    # Parse command line options
-    from optparse import OptionParser
-
-    usage = "usage: %prog [options]"
-    parser = OptionParser(usage=usage, version=('%%prog'))
-
-    parser.add_option("--debug", dest="debug", default=False, action="store_true",
-                      help="Enter the pdb debugger on main()")
-    parser.add_option("--profile", dest="profile", action="store_true",
-                      default=False,
-                      help="Run the profiler on main()")
-    parser.add_option("-v", "--verbose", dest="verbose", default=False,
-                      action="store_true",
-                      help="Turn on verbose output")
-
-    (options, args) = parser.parse_args(sys.argv[1:])
-
-    # Are we debugging this?
-    if options.debug:
-        import pdb
-
-        pdb.run('main(options, args)')
-
-    # Are we profiling this?
-    elif options.profile:
-        import profile
-
-        print("%s profile:" % sys.argv[0])
-        profile.run('main(options, args)')
-
-    else:
-        main(options, args)
-
-#END

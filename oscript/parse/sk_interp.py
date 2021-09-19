@@ -1,17 +1,13 @@
-#!/usr/bin/env python
-#
-# Legacy Skeleton File Handling.
-#
 """
-Legacy Skeleton File Handling.
+oscript ("skeleton") file decoding and interpretation routines.
 
 """
 
 import sys, os, glob
-import math, re, types
+import math, re
 import logging
 
-from g2base import Bunch, ssdlog
+from g2base import Bunch
 from g2cam.INS import INSdata as INSconfig
 
 from oscript.parse import sk_lexer
@@ -23,12 +19,6 @@ strtype = str
 
 class DecodeError(skError):
     pass
-
-try:
-    obshome = os.environ['OBSHOME']
-except KeyError:
-    print("Warning: OBSHOME environment variable is not set!")
-    obshome = '.'
 
 def ASTerr(ast):
     raise skError("AST does not match expected format: %s" % str(ast))
@@ -1270,168 +1260,3 @@ class Decoder(object):
                 new_ast = ASTNode('block_merge', *new_ast.items)
 
             return new_ast
-
-
-def decode_abscmd(cmdstr, envstr, sk_bank, logger):
-
-    from g2base.remoteObjects import remoteObjects as ro
-    ro.init()
-
-    fakeStatus = {
-        'STATL.TSC_F_SELECT': 'NS_IR',
-        'FITS.VGW.IMGROT_FLG': '00',
-        'VGWQ.AGP.ABS.RA': '123645.917',
-        'VGWQ.AGP.ABS.DEC': '+623151.17',
-        'VGWQ.AGP.EQUINOX': '2000.0',
-        'STATS.RA': '010645.101',
-        'STATS.DEC': '+194643.01',
-        'STATS.AZ': '60.0',
-        'TSCV.WINDSDRV': '08',
-        'STATL.TELDRIVE': 'Tracking',
-        'STATS.EQUINOX': '2000.0000',
-        'FITS.SBR.MAINOBCP': 'IRCS',
-        'VGWQ.AGE.SKYLVL': '3192.1',
-        'TSCL.Z': '7.35',
-        'TSCL.INSROTPA': '71.834478',
-    }
-
-    # Create top level logger.
-    logger = ssdlog.make_logger('sk_decode', options)
-
-    sk_bank = skBank(options.skdir, logger=logger)
-
-    variable_resolver = VariableResolver({})
-    register_resolver = RegisterResolver()
-    #status_resolver = MockStatusResolver(fakeStatus)
-    status_resolver = StatusResolver(ro.remoteObjectProxy('status'))
-    frame_source = MockFrameSource()
-
-    eval = Evaluator(variable_resolver, register_resolver,
-                     status_resolver, frame_source, logger)
-
-    # Parse environment string into an AST, raising parse error if
-    # necessary
-    envstr = envstr.strip()
-    if len(envstr) > 0:
-        res = sk_bank.param_parser.parse_params(envstr)
-        if res[0]:
-            raise DecodeError("Error parsing default parameters '%s': %s" % (
-                envstr, res[2]))
-
-        try:
-            ast_global_params = res[1]
-            assert ast_global_params.tag == 'param_list', ASTerr(ast_global_params)
-
-        except AssertionError as e:
-            raise DecodeError("Malformed default parameter list '%s': AST=%s" % (envstr, str(ast_global_params)))
-
-    else:
-        ast_global_params = None
-
-    # Set global env, if any
-    if ast_global_params:
-        eval.set_params(ast_global_params)
-
-    # Parse command string into an AST, raising parse error if
-    # necessary
-    cmdstr = cmdstr.strip()
-    res = sk_bank.ope_parser.parse_opecmd(cmdstr)
-    if res[0]:
-        raise DecodeError("Error parsing command '%s': %s" % (
-            cmdstr, res[2]))
-
-    ast = res[1]
-    assert ast.tag == 'cmdlist', ASTerr(ast)
-
-    ast = ast.items[0]
-    assert ast.tag == 'abscmd', ASTerr(ast)
-    assert len(ast.items) == 2, ASTerr(ast)
-
-    (ast_cmd_exp, ast_params) = ast.items
-
-    # Make a *SUB ast and decode it
-    ast = ASTNode('star_sub', ast_cmd_exp, ast_params)
-
-    decoder = Decoder(eval, sk_bank, logger)
-
-    newast = decoder.decode(ast, eval)
-
-    print(newast.AST2str())
-
-    if options.verbose:
-        print(newast.printAST())
-
-    return 0
-
-
-def main(options, args):
-
-    # Create top level logger.
-    logger = ssdlog.make_logger('sk_decode', options)
-
-    if options.cmdstr:
-        sk_bank = skBank(options.skdir, logger=logger)
-        decode_abscmd(options.cmdstr, options.envstr, sk_bank, logger)
-        sys.exit(0)
-
-    if len(args) > 0:
-        for filename in args:
-            try:
-                with open(filename, 'r') as in_f:
-                    buf = in_f.read()
-            except IOError as e:
-                print("Error opening file '%s'" % filename)
-                sys.exit(1)
-
-            interp(options, filename, buf)
-
-    else:
-        buf = sys.stdin.read()
-        interp(options, '<stdin>', buf)
-
-
-if __name__ == "__main__":
-    # Parse command line options
-    from optparse import OptionParser
-
-    usage = "usage: %prog [options] "
-    optprs = OptionParser(usage=usage, version=('%%prog'))
-
-    optprs.add_option("--debug", dest="debug", default=False,
-                      action="store_true",
-                      help="Enter the pdb debugger on main()")
-    optprs.add_option("--cmd", dest="cmdstr",
-                      help="The abstract command string to be decoded")
-    optprs.add_option("--env", dest="envstr", default='',
-                      help="The abstract command environment string")
-    optprs.add_option("--action", dest="action",
-                      help="decode")
-    optprs.add_option("--profile", dest="profile", action="store_true",
-                      default=False,
-                      help="Run the profiler on main()")
-    optprs.add_option("--skdir", dest="skdir", default=obshome,
-                      help="Base directory of the skeleton files")
-    optprs.add_option("-v", "--verbose", dest="verbose", default=False,
-                      action="store_true",
-                      help="Turn on verbose output")
-    ssdlog.addlogopts(optprs)
-
-    (options, args) = optprs.parse_args(sys.argv[1:])
-
-    # Are we debugging this?
-    if options.debug:
-        import pdb
-
-        pdb.run('main(options, args)')
-
-    # Are we profiling this?
-    elif options.profile:
-        import profile
-
-        print("%s profile:" % sys.argv[0])
-        profile.run('main(options, args)')
-
-    else:
-        main(options, args)
-
-#END

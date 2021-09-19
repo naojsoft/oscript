@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+#
+# para_lexer -- SOSS PARA file lexer
+#
+import sys
+from argparse import ArgumentParser
+
+from oscript.parse import para_lexer
+
+from g2base import ssdlog
+
+
+def printTokens(tokens):
+    for token in tokens:
+        print(token)
+
+
+def main(options, args):
+
+    # Create top level logger.
+    logger = ssdlog.make_logger('para_lexer', options)
+
+    # Create the scanner
+    scanner = para_lexer.paraScanner(logger=logger)
+
+    if len(args) > 0:
+        for filename in args:
+            try:
+                res = scanner.scan_file(filename)
+
+                if (res.tokens != None) and options.verbose:
+                    printTokens(res.tokens)
+
+                print("%s: %d errors" % (filename, res.errors))
+
+            except para_lexer.paraScanError as e:
+                # Print error message and continue to next file
+                print(str(e))
+
+    else:
+        buf = sys.stdin.read()
+        try:
+            res = scanner.scan_buf(buf)
+
+            if (res.tokens != None) and options.verbose:
+                printTokens(res.tokens)
+
+                print("%d errors" % (res.errors))
+
+        except para_lexer.paraScanError as e:
+            # Print error message
+            print(str(e))
+
+
+if __name__ == '__main__':
+    # Parse command line options
+    argprs = ArgumentParser(description="SOSS PARA file lexer")
+
+    argprs.add_argument("-v", "--verbose", dest="verbose", default=False,
+                        action="store_true",
+                        help="Turn on verbose output")
+    ssdlog.addlogopts(argprs)
+
+    options, args = argprs.parse_known_args(sys.argv[1:])
+
+    main(options, args)

@@ -1,13 +1,12 @@
-#!/usr/bin/env python
-#
-# para_parser.py -- SOSS PARA file parser
-#
+"""
+para_parser.py -- SOSS PARA file parser
+"""
 import logging
 
 from ply.lex import LexToken
 from ply import yacc
 
-from g2base import Bunch, ssdlog
+from g2base import Bunch
 
 from oscript.DotParaFiles import NestedException
 
@@ -333,82 +332,3 @@ class paraParser(object):
         res.filepath = parapath
 
         return res
-
-
-def main(options, args):
-
-    # TODO: configure the logger
-    logger = logging.getLogger('para.parser')
-
-    lexer = para_lexer.paraScanner(logger=logger)
-
-    parser = paraParser(lexer, logger=logger)
-
-    if len(args) > 0:
-        for filename in args:
-            try:
-                res = parser.parse_file(filename)
-
-                if (res.errors == 0) and options.verbose:
-                    print(res.paramList)
-                    print(res.paramDict)
-
-                print("%s: %d errors" % (filename, res.errors))
-
-            except paraParseError as e:
-                # Print error message and continue to next file
-                print(str(e))
-
-    else:
-        buf = sys.stdin.read()
-        try:
-            res = parser.parse_buf(buf)
-
-            if (res.errors == 0) and options.verbose:
-                print(res.paramList)
-                print(res.paramDict)
-
-                print("%d errors" % (res.errors))
-
-        except paraParseError as e:
-            # Print error message
-            print(str(e))
-
-
-if __name__ == '__main__':
-    import sys
-    # Parse command line options
-    from optparse import OptionParser
-
-    usage = "usage: %prog [options] [file ...]"
-    optparser = OptionParser(usage=usage, version=('%%prog'))
-
-    optparser.add_option("--debug", dest="debug", default=False,
-                         action="store_true",
-                         help="Enter the pdb debugger on main()")
-    optparser.add_option("--profile", dest="profile", action="store_true",
-                         default=False,
-                         help="Run the profiler on main()")
-    optparser.add_option("-v", "--verbose", dest="verbose", default=False,
-                         action="store_true",
-                         help="Turn on verbose output")
-
-    (options, args) = optparser.parse_args(sys.argv[1:])
-
-    # Are we debugging this?
-    if options.debug:
-        import pdb
-
-        pdb.run('main(options, args)')
-
-    # Are we profiling this?
-    elif options.profile:
-        import profile
-
-        print("%s profile:" % sys.argv[0])
-        profile.run('main(options, args)')
-
-    else:
-        main(options, args)
-
-#END
