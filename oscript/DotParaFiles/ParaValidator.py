@@ -1,17 +1,16 @@
-#! /usr/bin/python
-#
-# ParaValidator -- wrapper of para file tools for use in TaskManager
-#
-#?  The call to validator.populate in the ParaValidator.populate()
-#?  method will fail if it evaluates a parameter before the case
-#?  variable controlling it has been evaluated.  The parameter names
-#?  from the .para file need to be saved in a list to preserve their
-#?  order, and then evaluation needs to proceed in that order.  New
-#?  .para files must also be checked to be sure that case variable
-#?  parameters are defined before any parameters that depend on
-#?  them.               Bruce & Eric, 2007-09-11
-# THIS HAS BEEN FIXED, AS FAR AS I COULD TEST IT....EJ (2008.04.21)
+"""
+ParaValidator -- wrapper of para file tools for use in TaskManager
+  The call to validator.populate in the ParaValidator.populate()
+  method will fail if it evaluates a parameter before the case
+  variable controlling it has been evaluated.  The parameter names
+  from the .para file need to be saved in a list to preserve their
+  order, and then evaluation needs to proceed in that order.  New
+  .para files must also be checked to be sure that case variable
+  parameters are defined before any parameters that depend on
+  them.               Bruce & Eric, 2007-09-11
 
+THIS HAS BEEN FIXED, AS FAR AS I COULD TEST IT....EJ (2008.04.21)
+"""
 import os, glob, re
 
 from g2base import Bunch
@@ -564,62 +563,3 @@ class ParaValidator(object):
     def store_userReg(self, parakey, params):
         self.userRegMap[parakey] = Bunch.caselessDict({});
         self.userRegMap[parakey].update(params);
-
-
-def main(options, args):
-
-    import logging, os.path
-
-    logger = logging.getLogger('para.ParaValidator')
-    logger.addHandler(logging.StreamHandler())
-    logger.setLevel(logging.DEBUG)
-
-    validator = ParaValidator(logger)
-
-    print(args)
-    for arg in args:
-        if os.path.isdir(arg):
-            validator.loadParaDir(arg)
-
-        else:
-            (pfx, fn) = os.path.split(arg)
-            (pfx, subsys) = os.path.split(pfx)
-            (key, ext) = os.path.splitext(fn)
-            parakey = (subsys, ext.upper())
-            validator.loadParaFile(parakey, arg)
-
-
-if __name__ == "__main__":
-    # Parse command line options
-    from optparse import OptionParser
-    import sys
-
-    usage = "usage: %prog [options]"
-    optprs = OptionParser(usage=usage, version=('%%prog'))
-
-    optprs.add_option("--debug", dest="debug", default=False, action="store_true",
-                      help="Enter the pdb debugger on main()")
-    optprs.add_option("--profile", dest="profile", action="store_true",
-                      default=False,
-                      help="Run the profiler on main()")
-
-    (options, args) = optprs.parse_args(sys.argv[1:])
-
-
-    # Are we debugging this?
-    if options.debug:
-        import pdb
-
-        pdb.run('main(options, args)')
-
-    # Are we profiling this?
-    elif options.profile:
-        import profile
-
-        print("%s profile:" % sys.argv[0])
-        profile.run('main(options, args)')
-
-    else:
-        main(options, args)
-
-#END

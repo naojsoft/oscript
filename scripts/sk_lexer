@@ -2,7 +2,7 @@
 #
 # sk_lexer.py -- oscript ("skeleton") file lexer
 #
-import sys, os
+import sys
 from argparse import ArgumentParser
 
 from oscript.parse import sk_lexer

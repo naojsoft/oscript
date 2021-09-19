@@ -1,0 +1,40 @@
+#! /usr/bin/python
+#
+# para_validator -- test of oscript PARA validator
+#
+import sys
+import os.path
+from argparse import ArgumentParser
+
+from oscript.DotParaFiles.ParaValidator import ParaValidator
+
+from g2base import ssdlog
+
+
+def main(options, args):
+
+    # configure the logger
+    logger = ssdlog.make_logger('para_validator', options)
+
+    validator = ParaValidator(logger)
+
+    for arg in args:
+        if os.path.isdir(arg):
+            validator.loadParaDir(arg)
+
+        else:
+            (pfx, fn) = os.path.split(arg)
+            (pfx, subsys) = os.path.split(pfx)
+            (key, ext) = os.path.splitext(fn)
+            parakey = (subsys, ext.upper())
+            validator.loadParaFile(parakey, arg)
+
+
+if __name__ == "__main__":
+    # Parse command line options
+    argparser = ArgumentParser(description="oscript PARA validator")
+    ssdlog.addlogopts(argparser)
+
+    options, args = argparser.parse_known_args(sys.argv[1:])
+
+    main(options, args)
