@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # ope.py -- helper code for processing legacy OPE (observation) files
 #
@@ -7,8 +6,10 @@ import functools
 
 from g2base import Bunch
 
+
 class OPEerror(Exception):
     pass
+
 
 # OPE file regexes
 # old style
@@ -412,47 +413,3 @@ def get_targets(ope_buf, prm_dirs):
                 tgt_list.append((tgtname, objname, ra, dec, eq))
 
     return tgt_list
-
-
-def main(options, args):
-    with open(options.opefile, 'r') as in_f:
-        opebuf = in_f.read()
-
-    print(getCmd(opebuf, options.cmdstr, []))
-
-
-if __name__ == '__main__':
-
-    # Parse command line options
-    from optparse import OptionParser
-
-    optprs = OptionParser(version=('%prog'))
-    optprs.add_option("--cmd", dest="cmdstr", metavar="CMDSTR",
-                      help="The CMDSTR to convert")
-    optprs.add_option("--debug", dest="debug", default=False, action="store_true",
-                      help="Enter the pdb debugger on main()")
-    optprs.add_option("--ope", dest="opefile", metavar="FILE",
-                      help="Specify OPE file to use")
-    optprs.add_option("--profile", dest="profile", action="store_true",
-                      default=False,
-                      help="Run the profiler on main()")
-
-    (options, args) = optprs.parse_args(sys.argv[1:])
-
-    # Are we debugging this?
-    if options.debug:
-        import pdb
-
-        pdb.run('main(options, args)')
-
-    # Are we profiling this?
-    elif options.profile:
-        import profile
-
-        print("%s profile:" % sys.argv[0])
-        profile.run('main(options, args)')
-
-    else:
-        main(options, args)
-
-# END

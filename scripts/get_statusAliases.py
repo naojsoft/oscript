@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 #
 """
 Program to get the list of status aliases used by an instrument in SOSS
@@ -18,10 +18,13 @@ errors!!
 """
 import sys
 import pprint
+from argparse import ArgumentParser
+
 from oscript.tests.testfunc_sk_parser import TestSkLexer, TestSkParser
 from oscript.parse.sk_common import ASTNode
 
 from g2base import ssdlog
+
 
 class GetAliasesLexer(TestSkLexer):
 
@@ -93,25 +96,19 @@ class GetAliasesParser(TestSkParser):
 
 
 if __name__ == "__main__":
-    # Parse command line options
-    from optparse import OptionParser
+    argprs = ArgumentParser(description="Extract status aliases used by a script")
 
-    usage = "usage: %prog [options]"
-    optparser = OptionParser(usage=usage, version=('%%prog'))
+    argprs.add_argument("--skbase", dest="skbase", default='../SkPara/sk',
+                        help="Specify base skeleton file directory")
+    argprs.add_argument("--ins", dest="ins", default='*',
+                        help="Specify instrument to run tests")
+    argprs.add_argument("--mode", dest="mode", default='*',
+                        help="Specify mode for skeleton files")
+    argprs.add_argument("--file", dest="file", default='*.sk',
+                        help="Specify particular skeleton file(s)")
+    ssdlog.addlogopts(argprs)
 
-    optparser.add_option("--skbase", dest="skbase", default='../SkPara/sk',
-                         help="Specify base skeleton file directory")
-    optparser.add_option("--ins", dest="ins", default='*',
-                         help="Specify instrument to run tests")
-    optparser.add_option("--mode", dest="mode", default='*',
-                         help="Specify mode for skeleton files")
-    optparser.add_option("--file", dest="file", default='*.sk',
-                         help="Specify particular skeleton file(s)")
-    ssdlog.addlogopts(optparser)
-
-    (options, args) = optparser.parse_args(sys.argv[1:])
-
-    #unittest.main()
+    (options, args) = argprs.parse_known_args(sys.argv[1:])
 
     # Create top level logger.
     logger = ssdlog.make_logger('testlogger', options)
@@ -136,6 +133,3 @@ if __name__ == "__main__":
     print("Aliases used:")
     for alias in aliases:
         print(alias)
-
-
-# END

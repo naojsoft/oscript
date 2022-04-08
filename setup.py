@@ -30,6 +30,7 @@ setup(
     packages = ['oscript',
                 'oscript.DotParaFiles',
                 'oscript.parse',
+                'oscript.util',
                 'oscript.tests',
                 ],
     package_data = { #'oscript.doc': ['manual/*.html'],
