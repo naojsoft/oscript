@@ -208,11 +208,19 @@ class skScanner(object):
     ##         t.value = tok
     ##     return t
 
-    # Quoted string will not be an ID
+    # Double quoted string
     def t_QSTR(self, t):
-        r'"[^"]*"'
+        r'"([^"\\\n]|\\(.|\n))*"'
         # Just strip off the quotes
         t.value = t.value[1:-1]
+        return t
+
+    # Single quoted string
+    def t_SQSTR(self, t):
+        r"'([^'\\\n]|\\(.|\n))*'"
+        # Just strip off the quotes
+        t.value = t.value[1:-1]
+        t.type = 'QSTR'
         return t
 
     # List string is yet another kind of string
