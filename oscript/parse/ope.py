@@ -386,7 +386,9 @@ def getCmd(opebuf, cmdstr, include_dirs):
 
 def get_targets(ope_buf, prm_dirs):
 
-    re_obj = re.compile(r'^.*OBJECT=\"?([\w\d_]+)\"?(.*)$', re.IGNORECASE)
+    re_obj = re.compile(r'^.*OBJECT=([\w\d_]+)(.*)$', re.IGNORECASE)
+    # OBJECT names encased in double quotes
+    re_obj2 = re.compile(r'^.*OBJECT=\"([^\"]+)\"(.*)$', re.IGNORECASE)
     re_eqx = re.compile(r'^.*\s+EQUINOX=\"?([\d\.]+)\"?(.*)$', re.IGNORECASE)
     re_ra = re.compile(r'^.*\s+RA=([\d\.]+)(.*)$', re.IGNORECASE)
     re_dec = re.compile(r'^.*\s+DEC=([\d\+\-\.]+)(.*)$', re.IGNORECASE)
@@ -395,7 +397,9 @@ def get_targets(ope_buf, prm_dirs):
     tgt_list = []
 
     for key, line in res.items():
-        m_obj = re_obj.match(line)
+        m_obj = re_obj2.match(line)
+        if m_obj is None:
+            mobj = re_obj.match(line)
         if m_obj is not None:
             tgtname = key
             objname = m_obj.group(1)
@@ -405,7 +409,7 @@ def get_targets(ope_buf, prm_dirs):
             if m_ra is not None and m_dec is not None:
                 ra = m_ra.group(1)
                 dec = m_dec.group(1)
-                if m_eqx is not None:
+                if m_eqx is None:
                     eq = "2000"
                 else:
                     eq = m_eqx.group(1)
