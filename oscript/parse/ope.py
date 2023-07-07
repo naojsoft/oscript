@@ -399,7 +399,7 @@ def get_targets(ope_buf, prm_dirs):
     for key, line in res.items():
         m_obj = re_obj2.match(line)
         if m_obj is None:
-            mobj = re_obj.match(line)
+            m_obj = re_obj.match(line)
         if m_obj is not None:
             tgtname = key
             objname = m_obj.group(1)
