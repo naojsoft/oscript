@@ -122,10 +122,10 @@ class skScanner(object):
 
     t_ignore = ' \t'
 
-    t_START     = r'(?i)\:START'
-    t_MAINSTART = r'(?i)\:MAIN_START'
-    t_END       = r'(?i)\:END'
-    t_MAINEND   = r'(?i)\:MAIN_END'
+    t_START     = r'\:START'
+    t_MAINSTART = r'\:MAIN_START'
+    t_END       = r'\:END'
+    t_MAINEND   = r'\:MAIN_END'
     t_NUM       = r'[0-9\.]+(\.\d*)?'
     t_EQ        = r'=='
     t_NE        = r'\!='
@@ -146,16 +146,16 @@ class skScanner(object):
     t_SUB       = r'\-'
     t_MUL       = r'\*'
     t_DIV       = r'\/'
-    t_GET_F_NO  = r'(?i)&GET_F_NO'
+    t_GET_F_NO  = r'&GET_F_NO'
 
-    t_STAR_IF     = r'(?i)\*IF'
-    t_STAR_ENDIF  = r'(?i)\*ENDIF'
-    t_STAR_ELIF   = r'(?i)\*ELIF'
-    t_STAR_ELSE   = r'(?i)\*ELSE'
-    t_STAR_SET    = r'(?i)\*SET'
-    t_STAR_SUB    = r'(?i)\*SUB'
-    t_STAR_FOR    = r'(?i)\*FOR'
-    t_STAR_ENDFOR = r'(?i)\*ENDFOR'
+    t_STAR_IF     = r'\*IF'
+    t_STAR_ENDIF  = r'\*ENDIF'
+    t_STAR_ELIF   = r'\*ELIF'
+    t_STAR_ELSE   = r'\*ELSE'
+    t_STAR_SET    = r'\*SET'
+    t_STAR_SUB    = r'\*SUB'
+    t_STAR_FOR    = r'\*FOR'
+    t_STAR_ENDFOR = r'\*ENDFOR'
 
     #t_ALIASREF  = r'![\w_][\w\d_\.]*'    # 'Status' reference
     def t_ALIASREF(self, t):
@@ -277,7 +277,7 @@ class skScanner(object):
 
 
     def build(self):
-        self.lexer = lex.lex(object=self,
+        self.lexer = lex.lex(object=self, reflags=re.IGNORECASE,
                              debug=self._debug, lextab=self._lextab)
 
     def __init__(self, logger=None, debug=False, lextab='sk_scan_tab'):

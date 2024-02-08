@@ -43,6 +43,8 @@ class paramParser(object):
         if not logger:
             logger = logging.getLogger('sk.parser')
         self.logger = logger
+        self.errors = 0
+        self.errinfo = []
         self._debug = debug
         self._parsetab = parsetab
 
