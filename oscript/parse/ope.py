@@ -95,9 +95,14 @@ def locate_prm(filename, include_dirs):
         filename, str(include_dirs)))
 
 
-def prepend_prm(lines, filename, include_dirs):
+def prepend_prm(lines, filename, include_dirs, prm_errmsg_list):
 
-    filepath = locate_prm(filename, include_dirs)
+    try:
+        filepath = locate_prm(filename, include_dirs)
+    except OPEerror as e:
+        errmsg = str(e)
+        prm_errmsg_list.append(errmsg)
+        return
 
     try:
         with open(filepath, 'r') as in_f:
@@ -143,6 +148,7 @@ def get_vars(plist, include_dirs):
     """Build substitution dictionary from the <Parameter_List> section
     of an OPE file."""
 
+    prm_errmsg_list = []
     lines = plist.split('\n')
     substDict = Bunch.caselessDict()
     while len(lines) > 0:
@@ -150,7 +156,11 @@ def get_vars(plist, include_dirs):
         line = line.strip()
         match = load_regex.match(line)
         if match:
-            prepend_prm(lines, match.group(1), include_dirs)
+            try:
+                prepend_prm(lines, match.group(1), include_dirs, prm_errmsg_list)
+            except IOError as e:
+               errmsg = str(e)
+               prm_errmsg_list.append(errmsg)
             continue
 
         # convert to uc
@@ -165,7 +175,7 @@ def get_vars(plist, include_dirs):
             val = line[idx+1:].strip()
             substDict[var] = val
 
-    return substDict
+    return Bunch.Bunch(varDict=substDict, prm_errmsg_list=prm_errmsg_list)
 
 
 def get_vars_ope(opebuf, include_dirs):
@@ -262,7 +272,7 @@ def check_ope(buf, include_dirs=None):
         include_dirs = []
 
     # compute the variable dictionary
-    varDict = get_vars_ope(buf, include_dirs)
+    vars_res = get_vars_ope(buf, include_dirs)
 
     refset = set([])
     badset = set([])
@@ -291,7 +301,7 @@ def check_ope(buf, include_dirs=None):
             reflist.append(bnch)
 
             try:
-                res = varDict[varref]
+                res = vars_res.varDict[varref]
             except KeyError:
                 badset.add(varref)
                 badlist.append(bnch)
@@ -330,8 +340,9 @@ def check_ope(buf, include_dirs=None):
 
     return Bunch.Bunch(refset=refset, reflist=reflist,
                        badset=badset, badlist=badlist,
-                       taglist=taglist, vardict=varDict,
-                       badcoords=badcoords)
+                       taglist=taglist, vardict=vars_res.varDict,
+                       badcoords=badcoords,
+                       prm_errmsg_list=vars_res.prm_errmsg_list)
 
 
 def substitute_params(plist, cmdstr, include_dirs):
@@ -393,10 +404,10 @@ def get_targets(ope_buf, prm_dirs):
     re_ra = re.compile(r'^.*\s+RA=([\d\.]+)(.*)$', re.IGNORECASE)
     re_dec = re.compile(r'^.*\s+DEC=([\d\+\-\.]+)(.*)$', re.IGNORECASE)
 
-    res = get_vars_ope(ope_buf, prm_dirs)
+    vars_res = get_vars_ope(ope_buf, prm_dirs)
     tgt_list = []
 
-    for key, line in res.items():
+    for key, line in vars_res.varDict.items():
         m_obj = re_obj2.match(line)
         if m_obj is None:
             m_obj = re_obj.match(line)
@@ -416,4 +427,4 @@ def get_targets(ope_buf, prm_dirs):
 
                 tgt_list.append((tgtname, objname, ra, dec, eq))
 
-    return tgt_list
+    return Bunch.Bunch(tgt_list=tgt_list, prm_errmsg_list=vars_res.prm_errmsg_list)

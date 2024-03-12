@@ -60,6 +60,11 @@ def main(options, args):
         try:
             res = ope.check_ope(buf, include_dirs=include_dirs)
 
+            if len(res.prm_errmsg_list) > 0:
+                print('PRM file errors:\n{}'.format('\n'.join(res.prm_errmsg_list)))
+                status = 1
+                raise Exception(f'{len(res.prm_errmsg_list)} problem(s) with PRM files')
+
             if len(res.badcoords) > 0:
                 for bnch in res.badcoords:
                     print("Line %4d: warning: %s" % (
