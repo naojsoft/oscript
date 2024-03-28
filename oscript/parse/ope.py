@@ -347,7 +347,8 @@ def check_ope(buf, include_dirs=None):
 
 def substitute_params(plist, cmdstr, include_dirs):
 
-    substDict = get_vars(plist, include_dirs)
+    vars_res = get_vars(plist, include_dirs)
+    substDict = vars_res.varDict
 
     cmdstr = toupper(cmdstr)
 
