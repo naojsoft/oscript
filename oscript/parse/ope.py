@@ -42,6 +42,8 @@ regex_ra1 = re.compile(r'^.*[\s=]RA=([\d\.]+)(.*)$', re.IGNORECASE)
 regex_ra2 = re.compile(r'^(?P<hr>\d\d)(?P<min>\d\d)(?P<sec>\d\d\.\d\d?\d?)$')
 regex_dec1 = re.compile(r'^.*[\s=]DEC=([\d\+\-\.]+)(.*)$', re.IGNORECASE)
 regex_dec2 = re.compile(r'^(?P<deg>[\-\+]?\d\d)(?P<min>\d\d)(?P<sec>\d\d\.\d\d?\d?)$')
+regex_equinox = re.compile(r'^.*[\s=]EQUINOX=([\d\.]+)(.*)$', re.IGNORECASE)
+
 
 def toupper(cmdstr):
     # TODO: is there a C-based module for something like this available?
@@ -257,6 +259,22 @@ def get_coords(line):
     dec_info = check_dec(dec)
 
     return (ra_info, dec_info)
+
+
+def get_coords2(line):
+    match1 = regex_ra1.match(line)
+    match2 = regex_dec1.match(line)
+    match3 = regex_equinox.match(line)
+
+    if not (match1 and match2 and match3):
+        return None
+
+    ra = match1.group(1)
+    dec = match2.group(1)
+    equinox = match3.group(1)
+
+    return Bunch.Bunch(ra=ra, dec=dec, equinox=equinox)
+
 
 def check_ope(buf, include_dirs=None):
     """
