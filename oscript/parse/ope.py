@@ -116,7 +116,7 @@ def prepend_prm(lines, filename, include_dirs, prm_errmsg_list):
         newlines = buf.split('\n')
         newlines.reverse()
         for line in newlines:
-            lines.insert(0, line)
+            lines.insert(0, (Bunch.Bunch(text=line, filename=filename, from_ope=False, from_prm=True, is_referenced=None)))
 
     except IOError as e:
         raise OPEerror(str(e))
@@ -146,17 +146,22 @@ def get_sections(opebuf):
     raise OPEerror("String contents do not match expected format")
 
 
-def get_vars(plist, include_dirs):
+def get_vars(plist, include_dirs, ope_filename):
     """Build substitution dictionary from the <Parameter_List> section
     of an OPE file."""
 
     prm_errmsg_list = []
-    lines = plist.split('\n')
+    ope_lines = plist.split('\n')
+    lines = []
+    for line in ope_lines:
+        lines.append(Bunch.Bunch(text=line, filename=ope_filename, from_ope=True, from_prm=False, is_referenced=None))
     substDict = Bunch.caselessDict()
+    substDict_info = Bunch.caselessDict()
     while len(lines) > 0:
         line = lines.pop(0)
-        line = line.strip()
-        match = load_regex.match(line)
+        text = line.text
+        text = text.strip()
+        match = load_regex.match(text)
         if match:
             try:
                 prepend_prm(lines, match.group(1), include_dirs, prm_errmsg_list)
@@ -166,25 +171,26 @@ def get_vars(plist, include_dirs):
             continue
 
         # convert to uc
-        line = toupper(line)
+        text = toupper(text)
 
-        if line.startswith('#') or line.startswith('*') or (len(line) == 0):
+        if text.startswith('#') or text.startswith('*') or (len(text) == 0):
             continue
 
-        if '=' in line:
-            idx = line.find('=')
-            var = line[0:idx].strip()
-            val = line[idx+1:].strip()
+        if '=' in text:
+            idx = text.find('=')
+            var = text[0:idx].strip()
+            val = text[idx+1:].strip()
             substDict[var] = val
+            substDict_info[var] = line
 
-    return Bunch.Bunch(varDict=substDict, prm_errmsg_list=prm_errmsg_list)
+    return Bunch.Bunch(varDict=substDict, varDict_info=substDict_info, prm_errmsg_list=prm_errmsg_list)
 
 
-def get_vars_ope(opebuf, include_dirs):
+def get_vars_ope(opebuf, include_dirs, ope_filename=None):
     """Build substitution dictionary from the <Parameter_List> section
     of an OPE file."""
     (header, plist, cmds) = get_sections(opebuf)
-    return get_vars(plist, include_dirs)
+    return get_vars(plist, include_dirs, ope_filename)
 
 def check_ra(ra):
     match = regex_ra2.match(ra)
@@ -275,8 +281,7 @@ def get_coords2(line):
 
     return Bunch.Bunch(ra=ra, dec=dec, equinox=equinox)
 
-
-def check_ope(buf, include_dirs=None):
+def check_ope(buf, include_dirs=None, ope_filename=None):
     """
     Parse an OPE file and return a Bunch of information about it.
     Returns a bunch with several items defined:
@@ -290,7 +295,7 @@ def check_ope(buf, include_dirs=None):
         include_dirs = []
 
     # compute the variable dictionary
-    vars_res = get_vars_ope(buf, include_dirs)
+    vars_res = get_vars_ope(buf, include_dirs, ope_filename=ope_filename)
 
     refset = set([])
     badset = set([])
@@ -355,10 +360,13 @@ def check_ope(buf, include_dirs=None):
                 badcoords.append(bnch)
             addvarrefs(lineno, line)
 
+    good_refset = refset - badset
+    for key, val in vars_res.varDict_info.items():
+        val.is_referenced = True if key in good_refset else False
 
     return Bunch.Bunch(refset=refset, reflist=reflist,
                        badset=badset, badlist=badlist,
-                       taglist=taglist, vardict=vars_res.varDict,
+                       taglist=taglist, vardict=vars_res.varDict, vardict_info=vars_res.varDict_info,
                        badcoords=badcoords,
                        prm_errmsg_list=vars_res.prm_errmsg_list)
 
@@ -414,7 +422,7 @@ def getCmd(opebuf, cmdstr, include_dirs):
         raise OPEerror("Can't extract command: %s" % str(e))
 
 
-def get_targets(ope_buf, prm_dirs):
+def get_targets(ope_buf, prm_dirs, ope_filename=None):
 
     re_obj = re.compile(r'^.*OBJECT=([\w\d_]+)(.*)$', re.IGNORECASE)
     # OBJECT names encased in double quotes
@@ -423,10 +431,12 @@ def get_targets(ope_buf, prm_dirs):
     re_ra = re.compile(r'^.*\s+RA=([\d\.]+)(.*)$', re.IGNORECASE)
     re_dec = re.compile(r'^.*\s+DEC=([\d\+\-\.]+)(.*)$', re.IGNORECASE)
 
-    vars_res = get_vars_ope(ope_buf, prm_dirs)
-    tgt_list = []
+    check_res = check_ope(ope_buf, prm_dirs, ope_filename)
 
-    for key, line in vars_res.varDict.items():
+    tgt_list = []
+    tgt_list_info = []
+
+    for key, line in check_res.vardict.items():
         m_obj = re_obj2.match(line)
         if m_obj is None:
             m_obj = re_obj.match(line)
@@ -445,5 +455,12 @@ def get_targets(ope_buf, prm_dirs):
                     eq = m_eqx.group(1)
 
                 tgt_list.append((tgtname, objname, ra, dec, eq))
+                filename = check_res.vardict_info[key].filename
+                from_ope = check_res.vardict_info[key].from_ope
+                from_prm = check_res.vardict_info[key].from_prm
+                is_referenced = check_res.vardict_info[key].is_referenced
+                tgt_list_info.append(Bunch.Bunch(tgtname=tgtname, objname=objname, ra=ra, dec=dec, eq=eq,
+                                                 filename=filename, from_ope=from_ope, from_prm=from_prm,
+                                                 is_referenced=is_referenced))
 
-    return Bunch.Bunch(tgt_list=tgt_list, prm_errmsg_list=vars_res.prm_errmsg_list)
+    return Bunch.Bunch(tgt_list=tgt_list, tgt_list_info=tgt_list_info, prm_errmsg_list=check_res.prm_errmsg_list)

@@ -58,7 +58,7 @@ def main(options, args):
             buf = in_f.read()
 
         try:
-            res = ope.check_ope(buf, include_dirs=include_dirs)
+            res = ope.check_ope(buf, include_dirs=include_dirs, ope_filename=os.path.basename(opefile))
 
             if len(res.prm_errmsg_list) > 0:
                 print('PRM file errors:\n{}'.format('\n'.join(res.prm_errmsg_list)))
