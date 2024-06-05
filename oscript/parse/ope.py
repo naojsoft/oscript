@@ -146,7 +146,7 @@ def get_sections(opebuf):
     raise OPEerror("String contents do not match expected format")
 
 
-def get_vars(plist, include_dirs, ope_filename):
+def get_vars(plist, include_dirs, ope_filename=None):
     """Build substitution dictionary from the <Parameter_List> section
     of an OPE file."""
 
