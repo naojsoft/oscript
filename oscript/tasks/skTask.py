@@ -23,8 +23,7 @@ from g2base.remoteObjects import remoteObjects as ro
 import oscript.parse.sk_common as sk_common
 import oscript.parse.sk_interp as sk_interp
 from oscript.parse.para_parser import NOP
-
-from . import g2Task
+from oscript.tasks import g2Task
 
 class ExecError(sk_interp.skError):
     pass

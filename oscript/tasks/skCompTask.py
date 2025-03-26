@@ -9,7 +9,7 @@ import time
 # requires naojsoft "g2cam" package
 from g2base import Bunch, Task
 
-from . import g2Task
+from oscript.tasks import g2Task
 from oscript.parse.sk_common import Closure
 
 

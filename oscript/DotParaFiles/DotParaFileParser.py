@@ -506,7 +506,7 @@ class ParameterHandler(object):
             elif aa['TYPE'] == 'NUMBER':
                 try:
                     if 'MIN' in aa and (float(aParamValue) < float(aa['MIN'])):
-                        message =  'The value=[%s] for key=[%s] is lesser than the minumum value=[%s]' % \
+                        message =  'The value=[%s] for key=[%s] is less than the minimum value=[%s]' % \
                                         (aParamValue, aParamKey, aa['MIN'])
                         self.logger.error(message)
                         raise ParameterValueRangeValidationException(exception=Exception(),
