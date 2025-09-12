@@ -8,6 +8,7 @@ import time
 from oscript.parse.para_parser import NOP
 from oscript.tasks import g2Task
 
+
 class Ins2TaskError(g2Task.g2TaskError):
     pass
 

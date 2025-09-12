@@ -10,7 +10,6 @@
 import sys, time
 import threading
 
-# NOTE: following imports require naojsoft "g2cam" package
 from g2base import Task, Bunch
 from g2base.remoteObjects import remoteObjects as ro
 from g2base.remoteObjects import Monitor

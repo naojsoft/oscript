@@ -1,22 +1,20 @@
-#!/usr/bin/env python
 #
 # Legacy Skeleton File Handling.
 #
 # E. Jeschke
 #
-
 """
 Legacy Skeleton File (Abstract Command) handling.
 """
 
 import sys, os, glob, time
-import imp
+#from importlib.util import spec_from_loader, module_from_spec
+import types
 import threading
 import queue as Queue
 import logging
 import traceback
 
-# NOTE: following imports require naojsoft "g2cam" package
 from g2base import Bunch, Task
 from g2base.remoteObjects import remoteObjects as ro
 
@@ -24,6 +22,7 @@ import oscript.parse.sk_common as sk_common
 import oscript.parse.sk_interp as sk_interp
 from oscript.parse.para_parser import NOP
 from oscript.tasks import g2Task
+
 
 class ExecError(sk_interp.skError):
     pass
@@ -114,7 +113,7 @@ class skExecutorTask(g2Task.g2Task):
                 task = self.queue.get(block=True, timeout=self.timeout)
                 self.task = task
 
-                task.register_callback(self.child_done, args=[task])
+                task.add_callback('resolved', self.child_done)
 
                 self.lock.acquire()
                 try:
@@ -163,7 +162,7 @@ class skExecutorTask(g2Task.g2Task):
         return self.result
 
 
-    def child_done(self, result, task):
+    def child_done(self, task, result):
         self.lock.acquire()
         try:
             self.count -= 1
@@ -1155,7 +1154,9 @@ def build_abscmd_module(skbase, obe_id, obe_mode, sk_bank=None):
 
     # Create new module with name: sk_<obeid>_<obemode>
     modname = ('%s%s_%s' % (module_prefix, obe_id.upper(), obe_mode.upper()))
-    module = imp.new_module(modname)
+    #modspec = spec_from_loader(modname, loader=None)
+    #module = module_from_spec(modspec)
+    module = types.ModuleType(modname)
 
     # Add default subsystem
     classDict['SUBSYS'] = sk_interp.get_subsys(obe_id, obe_mode)
