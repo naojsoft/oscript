@@ -14,22 +14,22 @@ class OPEerror(Exception):
 # OPE file regexes
 # old style
 ope_regex1 = re.compile(r'^.*\<HEADER\>(?P<hdr>.*)\</HEADER\>\s*'
-'\<PARAMETER_LIST\>(?P<params>.*)\</PARAMETER_LIST\>\s*'
-'\<COMMAND\>\s*(?P<cmd>.+)\s*\</COMMAND\>\s*$',
+                        r'\<PARAMETER_LIST\>(?P<params>.*)\</PARAMETER_LIST\>\s*'
+                        r'\<COMMAND\>\s*(?P<cmd>.+)\s*\</COMMAND\>\s*$',
 re.MULTILINE | re.DOTALL | re.IGNORECASE)
 # new style
 ope_regex2 = re.compile(r'^.*\:HEADER\s+(?P<hdr>.*)'
-'\:PARAMETER(_LIST)?\s+(?P<params>.*)'
-'\:COMMAND\s+(?P<cmd>.+)\s*$',
+                        r'\:PARAMETER(_LIST)?\s+(?P<params>.*)'
+                        r'\:COMMAND\s+(?P<cmd>.+)\s*$',
 re.MULTILINE | re.DOTALL | re.IGNORECASE)
 
 # CD file regex
 # old style
 cd_regex1 = re.compile(r'^.*\<COMMAND\>\s*(?P<cmd>.+)\s*\</COMMAND\>\s*$',
-                      re.MULTILINE | re.DOTALL | re.IGNORECASE)
+                       re.MULTILINE | re.DOTALL | re.IGNORECASE)
 # new style
 cd_regex2 = re.compile(r'^.*\:COMMAND\s+(?P<cmd>.+)\s*$',
-                      re.MULTILINE | re.DOTALL | re.IGNORECASE)
+                       re.MULTILINE | re.DOTALL | re.IGNORECASE)
 
 # PRM includes regex
 load_regex = re.compile(r'^\*LOAD\s*"(.+)"\s*$', re.IGNORECASE)
@@ -193,6 +193,10 @@ def get_vars_ope(opebuf, include_dirs, ope_filename=None):
     return get_vars(plist, include_dirs, ope_filename)
 
 def check_ra(ra):
+    if not ra.isascii():
+        raise OPEerror("RA of '%s' appears to contain non-ASCII characters" % (
+            ra))
+
     match = regex_ra2.match(ra)
     if not match:
         raise OPEerror("RA of '%s' does not appear to be formatted correctly" % (
@@ -212,6 +216,10 @@ def check_ra(ra):
     return (hr, mn, sec)
 
 def check_dec(dec):
+    if not dec.isascii():
+        raise OPEerror("DEC of '%s' appears to contain non-ASCII characters" % (
+            dec))
+
     match = regex_dec2.match(dec)
     if not match:
         raise OPEerror("DEC of '%s' does not appear to be formatted correctly" % (dec))

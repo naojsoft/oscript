@@ -62,16 +62,10 @@ class opeParser(paramParser):
 
         except Exception as e:
             # capture traceback?  Yacc tracebacks aren't that useful
-            ast = ASTNode('ERROR: %s' % str(e))
+            #ast = ASTNode('ERROR: %s' % str(e))
             # verify errors>0
-            assert(self.errors > 0)
-
-        try:
-            assert(ast.tag == 'cmdlist')
-
-        except AssertionError:
-            # ??  We're being silent like normal parsing
-            pass
+            #assert(self.errors > 0)
+            raise Exception(f"OPE command parse error: {e}")
 
         return (self.errors, ast, self.errinfo)
 
