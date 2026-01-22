@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # skCompTask.py -- support file for running compiled skeleton files
 #
@@ -12,10 +11,8 @@ from g2base import Bunch, Task
 from oscript.tasks import g2Task
 from oscript.parse.sk_common import Closure
 
-
 class skCompError(Exception):
     pass
-
 
 def async(parentTask):
     """Annotation function used to indicate an asynchronous skeleton file
