@@ -220,6 +220,7 @@ class skScanner(object):
         r"'([^'\\\n]|\\(.|\n))*'"
         # Just strip off the quotes
         t.value = t.value[1:-1]
+        # return as type QSTR (quoted string)
         t.type = 'QSTR'
         return t
 

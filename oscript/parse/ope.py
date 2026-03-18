@@ -6,6 +6,8 @@ import functools
 
 from g2base import Bunch
 
+from oscript.util.ope import non_ascii_lines
+
 
 class OPEerror(Exception):
     pass
@@ -302,6 +304,14 @@ def check_ope(buf, include_dirs=None, ope_filename=None):
     if include_dirs == None:
         include_dirs = []
 
+    # check buffer for non-ascii characters in non-comments
+    # bad_lines = non_ascii_lines(buf)
+    # if len(bad_lines) > 0:
+    #     line_no, col_no, ord_no = bad_lines[0]
+    #     raise ValueError(f"Non-ASCII character '{chr(ord_no)}' ({ord_no:x})"
+    #                      f" in non-comment line {line_no}"
+    #                      f", column {col_no}")
+
     # compute the variable dictionary
     vars_res = get_vars_ope(buf, include_dirs, ope_filename=ope_filename)
 
@@ -416,13 +426,20 @@ def getCmd(opebuf, cmdstr, include_dirs):
 
         cmdstr = cmdstr.strip()
 
-        #print "PLIST", plist
-        #print "CMDSTR", cmdstr
+        # check buffer for non-ascii characters in non-comments
+        bad_lines = non_ascii_lines(cmdstr)
+        if len(bad_lines) > 0:
+            line_no, col_no, ord_no = bad_lines[0]
+            raise ValueError(f"Non-ASCII character '{chr(ord_no)}' ({ord_no:x})"
+                             f", column {col_no}")
+
+        #print("PLIST", plist)
+        #print("CMDSTR", cmdstr)
 
         # Substitute parameters into command list
-        #print "SUBST <== (%s) : %s" % (str(plist), cmdstr)
+        #print("SUBST <== (%s) : %s" % (str(plist), cmdstr))
         cmdstr = substitute_params(plist, cmdstr, include_dirs)
-        #print "SUBST ==> %s" % (cmdstr)
+        #print("SUBST ==> %s" % (cmdstr))
 
         return cmdstr
 

@@ -12,9 +12,9 @@ sk_regex1 = re.compile(r"""^(?P<top>.*)\<Header\>(?P<hdr>.+)\</Header\>.*
                    re.MULTILINE | re.IGNORECASE | re.DOTALL)
 # new style
 sk_regex2 = re.compile(r"^(?P<top>.*)\:HEADER\s+(?P<hdr>.*)"
-":(DEFAULT_)?PARAMETER\s+(?P<params>.*)"
-":COMMAND\s+(?P<cmd>.+)$",
-                   re.MULTILINE | re.IGNORECASE | re.DOTALL)
+                       r":(DEFAULT_)?PARAMETER\s+(?P<params>.*)"
+                       r":COMMAND\s+(?P<cmd>.+)$",
+                       re.MULTILINE | re.IGNORECASE | re.DOTALL)
 
 
 class skError(Exception):

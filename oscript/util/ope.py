@@ -69,3 +69,24 @@ def funkyDMStoDeg(DMS):
        Both input (DMS) and return values are floating point."""
     s, h, m, sec = parseDMS(DMS)
     return hmsToHour(s, h, m, sec)
+
+
+def non_ascii_lines(buffer):
+    """Return (line, column, ordinal) for the first non-ASCII character on each non-comment line."""
+    if isinstance(buffer, bytes):
+        text = buffer.decode("utf-8")
+    else:
+        text = str(buffer)
+
+    line_numbers = []
+    for lineno, line in enumerate(text.splitlines(), 1):
+        stripped = line.lstrip()
+        if stripped.startswith("#"):
+            continue
+        for col, ch in enumerate(line, 1):
+            ordinal = ord(ch)
+            if ordinal > 127:
+                line_numbers.append((lineno, col, ordinal))
+                break
+
+    return line_numbers
