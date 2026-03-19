@@ -10,6 +10,7 @@ from ply.lex import LexToken
 from oscript.parse import sk_common
 from oscript.parse.sk_common import ASTNode
 from oscript.parse.param_parser import paramParser, skParseError
+from oscript.parse.ope import get_sections
 
 from g2base import Bunch
 
@@ -47,10 +48,10 @@ class opeParser(paramParser):
         p[0] = ASTNode('exec', p[2], p[3], p[4], None)
 
     def build(self):
-        self.ope_parser = yacc.yacc(module=self, start='opecmd',
-                                    debug=self._debug,
-                                    tabmodule=self._parsetab,
-                                    errorlog=self.logger)
+        self.parser = yacc.yacc(module=self, start='opecmd',
+                                debug=self._debug,
+                                tabmodule=self._parsetab,
+                                errorlog=self.logger)
 
     def parse_opecmd(self, buf, startline=1):
 
@@ -58,14 +59,20 @@ class opeParser(paramParser):
         self.reset(lineno=startline)
 
         try:
-            ast = self.ope_parser.parse(buf, lexer=self.lexer)
+            ast = self.parser.parse(buf, lexer=self.lexer)
 
         except Exception as e:
             # capture traceback?  Yacc tracebacks aren't that useful
-            #ast = ASTNode('ERROR: %s' % str(e))
-            # verify errors>0
+            errstr = 'ERROR: %s' % (str(e))
+            ast = ASTNode(errstr)
+            # verify errors>0 ???
             #assert(self.errors > 0)
-            raise Exception(f"OPE command parse error: {e}")
+            if self.errors == 0:
+                self.errors += 1
+            self.errinfo.append(Bunch.Bunch(lineno=self.lexer.lexer.lineno,
+                                            errstr=errstr,
+                                            token=None))
+            self.logger.error(errstr)
 
         return (self.errors, ast, self.errinfo)
 
@@ -74,18 +81,39 @@ class opeParser(paramParser):
 
         # Get the constituent parts of a skeleton file:
         # header, parameter list, command part
-        (hdrbuf, prmbuf, cmdbuf, startline) = sk_common.get_opeparts(opebuf)
+        # NOTE: this parser won't really work on an UNDECODED
+        # OPE file; you really need to do the variable substitutions
+        # first--the parser is not designed to work on files that
+        # include all the $ macros
+        hdrbuf, prmbuf, cmdbuf = get_sections(opebuf)
+        startline = 1
 
-        (errors, ast_params, errinfo) = self.parse_opecmd(cmdbuf,
-                                                          startline=startline)
+        # Initialize module level error variables
+        self.reset(lineno=startline)
+
+        try:
+            ast = self.parser.parse(cmdbuf, lexer=self.lexer)
+
+        except Exception as e:
+            # capture traceback?  Yacc tracebacks aren't that useful
+            errstr = 'ERROR: %s' % (str(e))
+            ast = ASTNode(errstr)
+            # verify errors>0 ???
+            #assert(self.errors > 0)
+            if self.errors == 0:
+                self.errors += 1
+            self.errinfo.append(Bunch.Bunch(lineno=self.lexer.lexer.lineno,
+                                            errstr=errstr,
+                                            token=None))
+            self.logger.error(errstr)
 
         # This will hold the results
-        res = Bunch.Bunch(errors=errors, errinfo=errinfo)
+        res = Bunch.Bunch(errors=self.errors, errinfo=self.errinfo)
 
         # make readable errors
-        if errors > 0:
+        if res.errors > 0:
             #print("ERRINFO = ", errinfo)
-            for errbnch in errinfo:
+            for errbnch in res.errinfo:
                 errbnch.verbose = sk_common.mk_error(cmdbuf, errbnch, 1)
 
         return res

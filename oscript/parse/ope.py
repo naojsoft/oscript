@@ -427,11 +427,11 @@ def getCmd(opebuf, cmdstr, include_dirs):
         cmdstr = cmdstr.strip()
 
         # check buffer for non-ascii characters in non-comments
-        bad_lines = non_ascii_lines(cmdstr)
-        if len(bad_lines) > 0:
-            line_no, col_no, ord_no = bad_lines[0]
-            raise ValueError(f"Non-ASCII character '{chr(ord_no)}' ({ord_no:x})"
-                             f", column {col_no}")
+        # bad_lines = non_ascii_lines(cmdstr)
+        # if len(bad_lines) > 0:
+        #     line_no, col_no, ord_no = bad_lines[0]
+        #     raise ValueError(f"Non-ASCII character '{chr(ord_no)}' ({ord_no:x})"
+        #                      f", column {col_no}")
 
         #print("PLIST", plist)
         #print("CMDSTR", cmdstr)
