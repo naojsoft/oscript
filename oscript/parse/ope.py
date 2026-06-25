@@ -4,7 +4,11 @@
 import re, sys, os
 import functools
 
-from g2base import Bunch
+# need Bunch from one of these two sources
+try:
+    from g2base import Bunch
+except ImportError:
+    from ginga.misc import Bunch
 
 from oscript.util.ope import non_ascii_lines
 
@@ -18,12 +22,12 @@ class OPEerror(Exception):
 ope_regex1 = re.compile(r'^.*\<HEADER\>(?P<hdr>.*)\</HEADER\>\s*'
                         r'\<PARAMETER_LIST\>(?P<params>.*)\</PARAMETER_LIST\>\s*'
                         r'\<COMMAND\>\s*(?P<cmd>.+)\s*\</COMMAND\>\s*$',
-re.MULTILINE | re.DOTALL | re.IGNORECASE)
+                        re.MULTILINE | re.DOTALL | re.IGNORECASE)
 # new style
 ope_regex2 = re.compile(r'^.*\:HEADER\s+(?P<hdr>.*)'
                         r'\:PARAMETER(_LIST)?\s+(?P<params>.*)'
                         r'\:COMMAND\s+(?P<cmd>.+)\s*$',
-re.MULTILINE | re.DOTALL | re.IGNORECASE)
+                        re.MULTILINE | re.DOTALL | re.IGNORECASE)
 
 # CD file regex
 # old style
@@ -118,7 +122,9 @@ def prepend_prm(lines, filename, include_dirs, prm_errmsg_list):
         newlines = buf.split('\n')
         newlines.reverse()
         for line in newlines:
-            lines.insert(0, (Bunch.Bunch(text=line, filename=filename, from_ope=False, from_prm=True, is_referenced=None)))
+            lines.insert(0, (Bunch.Bunch(text=line, filename=filename,
+                                         from_ope=False, from_prm=True,
+                                         is_referenced=None)))
 
     except IOError as e:
         raise OPEerror(str(e))
@@ -156,7 +162,9 @@ def get_vars(plist, include_dirs, ope_filename=None):
     ope_lines = plist.split('\n')
     lines = []
     for line in ope_lines:
-        lines.append(Bunch.Bunch(text=line, filename=ope_filename, from_ope=True, from_prm=False, is_referenced=None))
+        lines.append(Bunch.Bunch(text=line, filename=ope_filename,
+                                 from_ope=True, from_prm=False,
+                                 is_referenced=None))
     substDict = Bunch.caselessDict()
     substDict_info = Bunch.caselessDict()
     while len(lines) > 0:
@@ -185,7 +193,8 @@ def get_vars(plist, include_dirs, ope_filename=None):
             substDict[var] = val
             substDict_info[var] = line
 
-    return Bunch.Bunch(varDict=substDict, varDict_info=substDict_info, prm_errmsg_list=prm_errmsg_list)
+    return Bunch.Bunch(varDict=substDict, varDict_info=substDict_info,
+                       prm_errmsg_list=prm_errmsg_list)
 
 
 def get_vars_ope(opebuf, include_dirs, ope_filename=None):
