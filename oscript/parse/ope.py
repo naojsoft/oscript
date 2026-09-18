@@ -1,7 +1,8 @@
 #
 # ope.py -- helper code for processing legacy OPE (observation) files
 #
-import re, sys, os
+import re
+import os
 import functools
 
 # need Bunch from one of these two sources
@@ -10,7 +11,6 @@ try:
 except ImportError:
     from ginga.misc import Bunch
 
-from oscript.util.ope import non_ascii_lines
 
 
 class OPEerror(Exception):
@@ -81,7 +81,7 @@ def toupper(cmdstr):
                 start_quote = None
                 continue
         else:
-            if start_quote != None:
+            if start_quote is not None:
                 chars.append(c)
             else:
                 chars.append(c.upper())
@@ -310,7 +310,7 @@ def check_ope(buf, include_dirs=None, ope_filename=None):
       badset: a set of all undefined variable references (just variable names)
       taglist: a list of all tag lines encountered (each is a bunch)
     """
-    if include_dirs == None:
+    if include_dirs is None:
         include_dirs = []
 
     # check buffer for non-ascii characters in non-comments
@@ -351,7 +351,7 @@ def check_ope(buf, include_dirs=None, ope_filename=None):
             reflist.append(bnch)
 
             try:
-                res = vars_res.varDict[varref]
+                vars_res.varDict[varref]
             except KeyError:
                 badset.add(varref)
                 badlist.append(bnch)

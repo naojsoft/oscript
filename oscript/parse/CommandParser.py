@@ -176,7 +176,7 @@ class CommandParser(object):
                     # Best guess conversion
                     val = self.convertArg(val, _convertToken)
 
-                elif (type(paramTypes) == dict) and \
+                elif (isinstance(paramTypes, dict)) and \
                          (ucvar in paramTypes):
                     # Explicit one-on-one mappings provided via a dict
                     val = self.convertArg(val, paramTypes[ucvar])

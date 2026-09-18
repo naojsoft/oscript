@@ -7,13 +7,13 @@
 Legacy Skeleton File (Abstract Command) handling.
 """
 
-import sys, os, glob, time
+import os
+import glob
+import time
 #from importlib.util import spec_from_loader, module_from_spec
 import types
 import threading
 import queue as Queue
-import logging
-import traceback
 
 from g2base import Bunch, Task
 from g2base.remoteObjects import remoteObjects as ro
@@ -179,7 +179,7 @@ class skExecutorTask(g2Task.g2Task):
             if self.sklock._is_owned():
                 self.logger.info("Releasing sklock.")
                 self.sklock.release()
-        except:
+        except Exception:
             pass
 
 
@@ -288,7 +288,7 @@ class interpTask(g2Task.g2Task):
             enc_buf = ro.binary_encode(buf)
             self.setMy(ast_buf=enc_buf, ast_id=self.sk_id, ast_time=ast_time)
             buf = enc_buf = None
-        except Exception as e:
+        except Exception:
             buf = enc_buf = None
             self.logger.warn("Failed to compress AST; no command monitoring in integgui2")
 
@@ -392,7 +392,7 @@ class interpTask(g2Task.g2Task):
             assert (then_ast.tag == 'cmdlist'), \
                    ParseExecError("Badly formed THEN ast: %s" % str(then_ast))
 
-            if pred_ast == True:
+            if pred_ast is True:
                 # ELSE clause
                 return self.interp_cmdlist(then_ast, eval)
 
@@ -518,7 +518,7 @@ class interpTask(g2Task.g2Task):
         params = eval.eval_params(params_ast)
 
         varname = None
-        if resvar_ast != None:
+        if resvar_ast is not None:
             varname = eval.eval(resvar_ast)
             assert isinstance(varname, str), \
                    ParseExecError("Badly formed varname: %s" % str(varname))
@@ -548,7 +548,7 @@ class interpTask(g2Task.g2Task):
             res = task.wait()
 
         except Exception as e:
-            if varname == None:
+            if varname is None:
                 raise e
             res = 1
 
@@ -797,7 +797,7 @@ class interpTask(g2Task.g2Task):
             for task in asynctasks:
                 try:
                     #self.logger.debug("waiting on %s" % task)
-                    res2 = task.wait(timeout=0.0001)
+                    task.wait(timeout=0.0001)
 
                     # task finished, remove from pending tasks
                     self.logger.debug("task %s finished." % task)
@@ -866,7 +866,7 @@ class interpTask(g2Task.g2Task):
     def wait(self, timeout=None):
         # skTasks have a different definition of waiting, because task
         # is "done" when we reach :MAIN_END
-        trans = self.waitOnMyAny(['task_end', 'main_end'],
+        self.waitOnMyAny(['task_end', 'main_end'],
                                  timeout=timeout)
 
         # Is there a value we should be looking for in the transaction?
@@ -978,7 +978,7 @@ class execTask(interpTask):
         ast = res[1]
         assert (ast.tag == 'cmdlist'), \
                ParseExecError("Error parsing command '%s': %s" % (
-            cmdstr, str(e)))
+            cmdstr, str(ast)))
 
         ast = ast.items[0]
 
@@ -1108,7 +1108,7 @@ def build_abscmd_classes(skbase, ins, mode, file, sk_bank=None):
     """
 
     # If no skeleton bank is passed, create a new temporary one
-    if sk_bank == None:
+    if sk_bank is None:
         sk_bank = sk_interp.skBank(skbase)
 
     cmd_dct = {}

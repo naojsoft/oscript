@@ -1,14 +1,14 @@
 #
 # sk_compile.py -- Compile skeleton files to Python.
 #
-import sys, os
-import re, time
+import math
+import re
+import time
 import io
 
-from g2base import Bunch, ssdlog
+from g2base import Bunch
 
 from oscript.parse.sk_common import ASTNode, skError
-from oscript.parse import sk_interp
 
 class SkCompileError(skError):
     pass
@@ -105,7 +105,7 @@ class SkCompiler(object):
 
         if ast.tag == 'dyad':
             assert len(ast.items) == 3, \
-                   SkCompilerError("Malformed dyad AST: %s" % str(ast))
+                   SkCompileError("Malformed dyad AST: %s" % str(ast))
 
             val1 = self._skcompile_exp(ast.items[0], info)
             val2 = self._skcompile_exp(ast.items[2], info)
@@ -171,8 +171,8 @@ class SkCompiler(object):
 
         elif ast.tag == 'expression_list':
             raise SkCompileError("AST handling not yet implemented: %s" % str(ast))
-            l = [self.eval(exp) for exp in ast.items[0]]
-            return l
+            vals = [self.eval(exp) for exp in ast.items[0]]
+            return vals
 
         elif ast.tag == 'list':
             return self.string_interpolate(ast.items[0], info)
@@ -233,7 +233,7 @@ class SkCompiler(object):
         aliasList.add(alias)
         try:
             return info.aliasMap[alias]
-        except Exception as e:
+        except Exception:
             return "self.fetchOne(%s)" % repr(alias)
 
     def string_interpolate(self, stg, info):
@@ -283,7 +283,7 @@ class SkCompiler(object):
                     continue
 
                 # If not a special character, then append to buffer and carry on
-                if not c in specials:
+                if c not in specials:
                     res.append(c)
                     continue
 
@@ -341,7 +341,7 @@ class SkCompiler(object):
 
         s_indent = ' ' * indent
         ss_indent = ' ' * (indent+4)
-        sss_indent = ' ' * (indent+8)
+        ' ' * (indent+8)
 
         self.buf.write('%sdef __init__(self, ' % s_indent)
 
@@ -461,7 +461,7 @@ class SkCompiler(object):
                 str(cond_ast)))
             (pred_ast, then_ast) = cond_ast.items
 
-            if pred_ast != True:
+            if pred_ast is not True:
                 astlist.append(pred_ast)
 
         # Optomize status fetch for this group
@@ -473,7 +473,7 @@ class SkCompiler(object):
             # Form was already verified above
             (pred_ast, then_ast) = cond_ast.items
 
-            if pred_ast == True:
+            if pred_ast is True:
                 # ELSE clause
                 self.buf.write("%selse:\n" % (s_indent))
 
@@ -543,7 +543,7 @@ class SkCompiler(object):
 
         # optional val_lst specifies a list of values for the variable
         # to take on for each unrolled iteration.  We default to 1..N
-        if val_lst == None:
+        if val_lst is None:
             # Can't have loop_count==0 AND missing values
             assert loop_count != 0, \
                    SkCompileError("Loop count is 0 AND no values supplied")
@@ -699,7 +699,7 @@ class SkCompiler(object):
         subsys = self.get_value(ast_subsys)
 
         varname = None
-        if ast_resvar != None:
+        if ast_resvar is not None:
             varname = self.get_value(ast_resvar)
             assert isinstance(varname, str), \
                    SkCompileError("Badly formed varname: %s" % str(varname))
@@ -726,7 +726,7 @@ class SkCompiler(object):
 
         s_indent = ' ' * indent
 
-        if info == None:
+        if info is None:
             info = Bunch.Bunch(aliasList=set([]))
 
         for ast_exp in astlist:

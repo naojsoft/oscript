@@ -1,7 +1,8 @@
 #
 # support for sk interpretation -- common items
 #
-import sys, re
+import sys
+import re
 import threading
 
 # top-level regular expression matching a skeleton file
@@ -260,7 +261,7 @@ class IssueAST(object):
         res = []
         for idx in range(len(ast.items)):
             cond_ast = ast.items[idx]
-            if cond_ast.items[0] == True:
+            if cond_ast.items[0] is True:
                 res.append("ELSE")
                 res.append("%s" % (self.issue(cond_ast.items[1])))
             else:

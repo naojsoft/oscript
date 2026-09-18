@@ -3,8 +3,10 @@ oscript ("skeleton") file decoding and interpretation routines.
 
 """
 
-import sys, os, glob
-import math, re
+import os
+import glob
+import math
+import re
 import logging
 
 from g2base import Bunch
@@ -12,7 +14,6 @@ from g2cam.INS import INSdata as INSconfig
 
 from oscript.parse import sk_lexer
 from oscript.parse import sk_parser
-from oscript.parse import sk_common
 from oscript.parse.sk_common import ASTNode, skError, Closure
 
 strtype = str
@@ -262,7 +263,7 @@ class FrameSource(object):
 
         if len(args) == 3:
             (instname, frametype, count) = args
-            if count != None:
+            if count is not None:
                 count = int(count)
 
         elif len(args) == 2:
@@ -273,7 +274,7 @@ class FrameSource(object):
             frames = "Bad arguments to get_f_no: %s" % str(args)
             raise skError(str(frames))
 
-        if count == None:
+        if count is None:
             # Should return one frame
             frames = self.frameObj.getFrames(instname, frametype, 1)
             return frames[0]
@@ -458,8 +459,8 @@ class Evaluator(object):
             return self.eval_num(ast.items[0])
 
         elif ast.tag == 'expression_list':
-            l = [self.eval(exp) for exp in ast.items]
-            return l
+            vals = [self.eval(exp) for exp in ast.items]
+            return vals
 
         elif ast.tag == 'list':
             return self.eval_string_interpolate(ast.items[0])
@@ -551,7 +552,7 @@ class Evaluator(object):
                     continue
 
                 # If not a special character, then append to buffer and carry on
-                if not c in specials:
+                if c not in specials:
                     res.append(c)
                     continue
 
@@ -593,7 +594,7 @@ class Evaluator(object):
             assert keyval.tag == 'key_value_pair', ASTerr(keyval)
 
             (var, val_ast) = keyval.items
-            assert type(var) == strtype, ASTerr(keyval)
+            assert isinstance(var, strtype), ASTerr(keyval)
 
             val = make_closure(val_ast, self)
 
@@ -622,7 +623,7 @@ class Evaluator(object):
             assert keyval.tag == 'key_value_pair', ASTerr(keyval)
 
             (var, val_ast) = keyval.items
-            assert type(var) == strtype, ASTerr(keyval)
+            assert isinstance(var, strtype), ASTerr(keyval)
 
             val = self.eval(val_ast)
 
@@ -646,7 +647,7 @@ class Evaluator(object):
         for subast in ast.items:
             if subast.tag == 'key_value_pair':
                 (var, val_ast) = subast.items
-                assert type(var) == strtype, ASTerr(subast)
+                assert isinstance(var, strtype), ASTerr(subast)
 
                 resDict[var] = self.eval(val_ast)
             else:
@@ -667,7 +668,7 @@ class Evaluator(object):
             assert keyval.tag == 'key_value_pair', ASTerr(keyval)
 
             (var, val_ast) = keyval.items
-            assert type(var) == strtype, ASTerr(keyval)
+            assert isinstance(var, strtype), ASTerr(keyval)
 
             if close:
                 val = make_closure(val_ast, self)
@@ -766,7 +767,7 @@ class Decoder(object):
 
         newitems = []
         for item in astlist:
-            if type(item) != ASTNode:
+            if not isinstance(item, ASTNode):
                 newitems.append(item)
 
             else:
@@ -801,7 +802,7 @@ class Decoder(object):
 
         newitems = []
         for item in ast.items:
-            if type(item) == ASTNode:
+            if isinstance(item, ASTNode):
                 new_ast = self.decode(item, eval)
 
                 if isinstance(new_ast, ASTNode) and \
@@ -851,7 +852,7 @@ class Decoder(object):
 ##         if type(res) != ASTNode:
 ##             raise DecodeError("Unexpected eval result in decoding type: %s='%s' (%s)" % (
 ##                 var, str(res), str(type(res))))
-        if type(res) != Closure:
+        if not isinstance(res, Closure):
             raise DecodeError("Unexpected eval result in decoding type: %s='%s' (%s)" % (
                 var, str(res), str(type(res))))
 
@@ -947,7 +948,7 @@ class Decoder(object):
             assert len(cond_ast.items) == 2, ASTerr(cond_ast)
             (pred_ast, then_ast) = cond_ast.items
 
-            if pred_ast == True:
+            if pred_ast is True:
                 # ELSE clause
                 return self._decode_merge(then_ast, eval)
 
@@ -983,14 +984,14 @@ class Decoder(object):
         # code is unrolled
         loop_count = int(eval.eval(num_exp))
         try:
-            assert type(loop_count) == int, ASTerr(num_exp)
+            assert isinstance(loop_count, int), ASTerr(num_exp)
 
         except AssertionError:
             raise DecodeError("*FOR <num> .. is not a number (%s)" % str(loop_count))
 
         # optional val_lst specifies a list of values for the variable
         # to take on for each unrolled iteration.  We default to 1..N
-        if val_lst == None:
+        if val_lst is None:
             # Can't have loop_count==0 AND missing values
             assert loop_count != 0, "Loop count is 0 AND no values supplied"
 
@@ -1002,7 +1003,7 @@ class Decoder(object):
 
             # Evaluate the values, which should result in a string
             vals = eval.eval(val_lst)
-            assert type(vals) == strtype, "values did not evaluate to a string"
+            assert isinstance(vals, strtype), "values did not evaluate to a string"
 
             # Split it by spaces
             val_lst = vals.split()
@@ -1016,7 +1017,7 @@ class Decoder(object):
         # All items in result list should be strings
         #self.logger.debug("\n\nVARLIST IS %s\n\n" % str(var_lst))
         for item in var_lst:
-            assert type(item) == strtype, "not a string item"
+            assert isinstance(item, strtype), "not a string item"
 
         var_lst_len = len(var_lst)
 
@@ -1078,7 +1079,7 @@ class Decoder(object):
         assert len(ast.items) == 2, ASTerr(ast)
 
         params_ast = ast.items[0]
-        close = (ast.items[1] != None)
+        close = (ast.items[1] is not None)
 
         # Decode parameter list--should be no vars left afterward
         params = self._decode_params(params_ast, eval)
@@ -1140,7 +1141,7 @@ class Decoder(object):
 
         # evaluate cmd_exp --> abs command name
         cmdname = eval.eval(ast_cmd_exp)
-        assert type(cmdname) == strtype, "command name does not evaluate to a string"
+        assert isinstance(cmdname, strtype), "command name does not evaluate to a string"
 
         # Decode actual parameters to abstract command call
         # should be no vars left after this
@@ -1162,9 +1163,9 @@ class Decoder(object):
 
         # Evaluate OBE_ID and OBE_MODE
         obe_id = eval.eval(obe_id_ast)
-        assert type(obe_id) == strtype, "OBE_ID does not evaluate to a string"
+        assert isinstance(obe_id, strtype), "OBE_ID does not evaluate to a string"
         obe_mode = eval.eval(obe_mode_ast)
-        assert type(obe_mode) == strtype, "OBE_MODE does not evaluate to a string"
+        assert isinstance(obe_mode, strtype), "OBE_MODE does not evaluate to a string"
 
         # Make closures of the actuals
         #cur_eval = eval.clone()
@@ -1241,7 +1242,7 @@ class Decoder(object):
             assert keyval.tag == 'key_value_pair', ASTerr(keyval)
 
             (var, val_ast) = keyval.items
-            assert type(var) == strtype, "variable is not a string"
+            assert isinstance(var, strtype), "variable is not a string"
 
             new_val_ast = self.decode(val_ast, eval)
 

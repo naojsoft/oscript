@@ -7,7 +7,7 @@
 # Better error messages should be added, in particular to identify the
 # source of errors.  See TCSintTask.start() for an example.   BB
 #
-import sys, time
+import time
 import threading
 
 from g2base import Task, Bunch
@@ -69,7 +69,7 @@ class frame2dict(object):
         try:
             #self.frameSvc.logger.info("key = %s" % str(key))
             (instname, frametype, reqcount) = key
-            if reqcount != None:
+            if reqcount is not None:
                 count = int(reqcount)
             else:
                 count = 1
@@ -81,7 +81,7 @@ class frame2dict(object):
                    g2TaskError("Number of frames allocated (%d) does not match request (%d)" % (len(frames), count))
 
             start_frame = frames[0]
-            if reqcount == None:
+            if reqcount is None:
                 return start_frame
             else:
                 return "%s:%04d" % (start_frame, count)
@@ -144,7 +144,7 @@ class g2Task(Task.Task):
             self.logger.debug("RESUMED for ALL tags in: %s" % (str(tags)))
             return res
 
-        except Monitor.EventError as e:
+        except Monitor.EventError:
             raise TaskCancel("Task cancelled!")
         except Monitor.TimeoutError as e:
             raise TimeoutError(str(e))
@@ -164,7 +164,7 @@ class g2Task(Task.Task):
             self.logger.debug("RESUMED for ANY tags in: %s" % (str(tags)))
             return res
 
-        except Monitor.EventError as e:
+        except Monitor.EventError:
             raise TaskCancel("Task cancelled!")
         except Monitor.TimeoutError as e:
             raise TimeoutError(str(e))
@@ -191,11 +191,11 @@ class g2Task(Task.Task):
 
     def waitOnMyTrans(self, key, timeout=None, reqtags=None):
         # TODO: see if we can just make waitOnMy do this
-        d = self.waitOnMy(key, timeout=timeout)
+        self.waitOnMy(key, timeout=timeout)
 
         # Returns a dict of all items found for this transaction
         trans = self.monitor.getitems_suffixOnly(self.tag)
-        if type(trans) != dict:
+        if not isinstance(trans, dict):
             raise g2TaskError("Non-dict result for monitor fetch of subtag '%s': %s" % (
                 key, str(trans)))
 
@@ -212,11 +212,11 @@ class g2Task(Task.Task):
         Most transactions to external subsystems will synchronize to this.
         """
         key = 'done'
-        d = self.waitOnMy(key, timeout=timeout)
+        self.waitOnMy(key, timeout=timeout)
 
         # Returns a dict of all items found for this transaction
         trans = self.monitor.getitems_suffixOnly(self.tag)
-        if type(trans) != dict:
+        if not isinstance(trans, dict):
             trans = {}
 
         # Extract subsystem message and result
@@ -347,12 +347,12 @@ class g2Task(Task.Task):
             name = name.lower()
             try:
                 val = self.params[name]
-            except KeyError as e:
+            except KeyError:
                 raise g2TaskError("No parameter exists with name '%s'" % (
                     name))
 
             # If this is a status reference, then fetch the status item
-            if type(val) == str:
+            if isinstance(val, str):
                 if val.startswith('!'):
                     alias = val[1:].upper()
                     statusDict[alias] = 0
@@ -606,7 +606,7 @@ class INSintTask(g2Task):
         res = trans.get('result', -1)
         msg = trans.get('msg', '[No result message]')
 
-        if (type(res) != int) or (res != 0):
+        if (not isinstance(res, int)) or (res != 0):
             #raise g2TaskError("Instrument command (%s) failed; res=%d msg=%s" % (
             #    self.cmd_str, res, msg))
             res = g2TaskError("Instrument command (%s) failed; res=%d msg=%s" % (
@@ -645,7 +645,7 @@ class TCSintNativeTask(g2Task):
         res = trans.get('result', -1)
         msg = trans.get('msg', '[No result message]')
 
-        if (type(res) != int) or (res != 0):
+        if (not isinstance(res, int)) or (res != 0):
             res = g2TaskError("Telescope command (%s) failed; res=%d msg=%s" % (
                 self.cmd_str, res, msg))
 

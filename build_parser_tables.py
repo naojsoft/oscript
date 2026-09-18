@@ -2,12 +2,12 @@
 #
 # build_parser_tables -- build the parser tables
 #
-import sys
 import logging
-logger = logging.getLogger('build_parser_tables')
 
 from oscript.parse import (sk_lexer, param_parser, sk_parser,
                            para_lexer, para_parser)
+
+logger = logging.getLogger('build_parser_tables')
 
 # build param parser state machine table
 lex = sk_lexer.skScanner(logger=logger, lextab='scan1_tab', debug=False)

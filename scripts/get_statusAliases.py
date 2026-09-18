@@ -17,10 +17,10 @@ NOTE: the list will only be accurate if there are NO scanning or parsing
 errors!!
 """
 import sys
-import pprint
 from argparse import ArgumentParser
 
 from oscript.tests.testfunc_sk_parser import TestSkLexer, TestSkParser
+from oscript.parse import sk_lexer
 from oscript.parse.sk_common import ASTNode
 
 from g2base import ssdlog
@@ -45,7 +45,7 @@ class GetAliasesLexer(TestSkLexer):
                 self.printerrors(res.errinfo)
             return res.errors
 
-        except sk_lexer.skScanError as e:
+        except sk_lexer.skScanError:
             errmsg = "File (%s) contents do not match expected format" % \
                      skfile
             print(errmsg)
@@ -67,7 +67,7 @@ class GetAliasesParser(TestSkParser):
                 self.printerrors(res.errinfo)
                 return res.errors
 
-        except sk_lexer.skScanError as e:
+        except sk_lexer.skScanError:
             errmsg = "File (%s) contents do not match expected format" % \
                      skfile
             print(errmsg)
@@ -84,7 +84,7 @@ class GetAliasesParser(TestSkParser):
         # status aliases and add them to the set of all aliases found.
         for ast in ast_default_params.items:
             assert(ast.tag == 'key_value_pair')
-            var = ast.items[0]
+            ast.items[0]
             val = ast.items[1]
 
             if isinstance(val, ASTNode) and (val.tag == 'alias_ref'):

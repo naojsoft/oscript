@@ -84,7 +84,7 @@ class Ins2Task(g2Task.g2Task):
         self.setMy(cmd_time=time.time())
 
         try:
-            ack_res = obj.executeCmd(self.subsys, self.tag,
+            obj.executeCmd(self.subsys, self.tag,
                                      self.cmdname, (), kwdargs)
 
             self.setMy(ack_time=time.time(), ack_result=0)
@@ -106,7 +106,7 @@ class Ins2Task(g2Task.g2Task):
         res = trans.get('result', -1)
         msg = trans.get('msg', '[No result message]')
 
-        if (type(res) != int) or (res != 0):
+        if (not isinstance(res, int)) or (res != 0):
             ## raise Ins2TaskError("Instrument command failed; res=%d msg=%s" % (
             ##     res, msg))
             res = Ins2TaskError("Instrument command failed; res=%d msg=%s" % (
