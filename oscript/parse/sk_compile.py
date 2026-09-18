@@ -1,7 +1,6 @@
 #
 # sk_compile.py -- Compile skeleton files to Python.
 #
-import math
 import re
 import time
 import io
@@ -64,7 +63,7 @@ class SkCompiler:
             self.buf.write("SUBSYS = %s\n\n" % (repr(subsys)))
         self.buf.write("class %s(skCompTask):\n\n" % (classname))
 
-        self.skcompile_skeleton(skbunch.ast, classname=classname)
+        self.skcompile_skeleton(skbunch.ast)
         return self.buf.getvalue()
 
 
@@ -136,16 +135,14 @@ class SkCompiler:
             return "(%s %s)" % (opr, val1)
 
         elif ast.tag == 'func_call':
+            # TODO: not implemented; the sketch for it was
+            #   func_name = ast.items[0].lower()
+            #   tmp_vals = [self.eval_num(exp) for exp in ast.items[1].items[0]]
+            #   if func_name == 'sin':
+            #       return math.sin(math.radians(tmp_vals[0]))
+            #   ... and so on for 'cos' and 'tan', otherwise
+            #   raise skError("Unrecognized built in function: '%s'" % func_name)
             raise SkCompileError("Function calls not yet implemented: %s" % str(ast))
-            func_name = ast.items[0].lower()
-            tmp_vals = [self.eval_num(exp) for exp in ast.items[1].items[0]]
-            if func_name == 'sin':
-                return math.sin(math.radians(tmp_vals[0]))
-            if func_name == 'cos':
-                return math.cos(math.radians(tmp_vals[0]))
-            if func_name == 'tan':
-                return math.tan(math.radians(tmp_vals[0]))
-            raise skError("Unrecognized built in function: '%s'" % func_name)
 
         elif ast.tag == 'frame_id_ref':
             assert isinstance(ast.items[0], str), \
@@ -170,9 +167,9 @@ class SkCompiler:
             return "float(%s)" % (val1)
 
         elif ast.tag == 'expression_list':
+            # TODO: not implemented; the sketch for it was
+            #   return [self.eval(exp) for exp in ast.items[0]]
             raise SkCompileError("AST handling not yet implemented: %s" % str(ast))
-            vals = [self.eval(exp) for exp in ast.items[0]]
-            return vals
 
         elif ast.tag == 'list':
             return self.string_interpolate(ast.items[0], info)
@@ -204,13 +201,13 @@ class SkCompiler:
             return self._resolve_var(varname)
 
         elif ast.tag == 'reg_ref':
+            # TODO: not implemented; the sketch for it was
+            #   return self.registers.get(ast.items[0])
             raise SkCompileError("AST handling not yet implemented: %s" % str(ast))
-            return self.registers.get(ast.items[0])
 
         else:
-            # Everything else evaluates to itself
+            # TODO: not implemented; everything else was to evaluate to itself
             raise SkCompileError("AST handling not yet implemented: %s" % str(ast))
-            return ast
 
     def skcompile_exp(self, ast):
         self.logger.debug("skcompile_exp: ast=%s" % str(ast))
@@ -329,7 +326,7 @@ class SkCompiler:
         raise SkCompileError("Don't know how to render the constant '%s'" % (
             ast.tag))
 
-    def skcompile_skeleton(self, ast, indent=4, classname=''):
+    def skcompile_skeleton(self, ast, indent=4):
         assert (ast.tag == 'skeleton') and (len(ast.items) == 2), \
                SkCompileError("Malformed skeleton AST: %s" % str(ast))
 
@@ -426,7 +423,7 @@ class SkCompiler:
             SkCompileError("Malformed async AST: %s" % str(ast))
 
         s_indent = ' ' * indent
-        self.buf.write("%s@async(self)\n" % (s_indent))
+        self.buf.write("%s@async_block(self)\n" % (s_indent))
         self.buf.write("%sdef fn%d():\n" % (s_indent, self.bumpcnt()))
         indent += 4
 

@@ -14,7 +14,7 @@ from oscript.parse.sk_common import Closure
 class skCompError(Exception):
     pass
 
-def async(parentTask):
+def async_block(parentTask):
     """Annotation function used to indicate an asynchronous skeleton file
     block.
     """
@@ -56,11 +56,11 @@ class skCompTask(g2Task.g2Task):
         try:
             obe_id = actuals['obe_id']
         except KeyError:
-            raise SkCompError("No parameter set: OBE_ID")
+            raise skCompError("No parameter set: OBE_ID")
         try:
             obe_mode = actuals['obe_mode']
         except KeyError:
-            raise SkCompError("No parameter set: OBE_MODE")
+            raise skCompError("No parameter set: OBE_MODE")
 
         # Evaluate OBE_ID and OBE_MODE
         assert isinstance(obe_id, str), \
@@ -89,7 +89,7 @@ class skCompTask(g2Task.g2Task):
         statusDict = {}
         for varname, alias in aliaslist:
             # If no parameter supplied to override default...
-            if self.params[varname] == None:
+            if self.params[varname] is None:
                 statusDict[alias] = '##NODATA##'
 
         # Fetch the items all in one go
@@ -131,7 +131,7 @@ class skCompTask(g2Task.g2Task):
             for task in asynclist:
                 try:
                     #self.logger.debug("waiting on %s" % task)
-                    res = task.wait(timeout=0.0001)
+                    task.wait(timeout=0.0001)
 
                     # task finished, remove from pending tasks
                     self.logger.debug("task %s finished." % task)
@@ -186,7 +186,7 @@ class skCompTask(g2Task.g2Task):
             self.setMy(main_end=time.time())
 
             # Execute the postprocessing section
-            res = self.do_post()
+            self.do_post()
 
         finally:
             if self.sklock:
