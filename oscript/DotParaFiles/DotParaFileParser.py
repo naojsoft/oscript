@@ -28,19 +28,17 @@ classes probably should be moved to other module.
 
 NOTES
 =====
-[ ] The parser has a problem with multiple PARA files when a file does not
-have a proper newline at the end--make sure all PARA files end with a
-NEWLINE
+[X] The parser used to have a problem with multiple PARA files when a file
+did not have a proper newline at the end: lexer state left over from one
+file would cause the first line of the next one to be mis-tokenized.  The
+scanner now resets that state for every buffer and supplies the terminating
+newline if the buffer does not have one.
 """
-import unittest
 import re
 import logging
 
-from g2base import ssdlog
-from g2base import Bunch
 
 import oscript.parse.para_lexer as para_lexer
-from oscript.DotParaFiles import NestedException
 from oscript.parse.para_parser import NOP, paraParser, DotParaFileException
 
 
@@ -111,7 +109,7 @@ class ParameterHandler(object):
         try:
             paramMap[key] = commandRegMap[key]
 
-        except KeyError as e:
+        except KeyError:
             # If uninitialized, default to @SYSTEM
             self.logger.warn("No @COMMAND history for param '%s', defaulting to @SYSTEM" % (key))
             self.get_systemRegMap(key, paramMap, paramDefMap)
@@ -124,7 +122,7 @@ class ParameterHandler(object):
         try:
             paramMap[key] = userRegMap[key]
 
-        except KeyError as e:
+        except KeyError:
             # If uninitialized, default to @SYSTEM
             self.logger.warn("No @USER history for param '%s', defaulting to @SYSTEM" % (
                 key))
@@ -200,7 +198,7 @@ class ParameterHandler(object):
 
         #for key in list(self.paramDefMap.keys()):
         for key in self.paramObj.paramList:
-            if not key in list(paramMap.keys()):
+            if key not in list(paramMap.keys()):
                 aParamDef = self.paramDefMap[key]
                 # Is this a CASE-type parameter and we are instructed to skip them?
                 if aParamDef.isConditional() and (not doConditionals):
@@ -415,7 +413,7 @@ class ParameterHandler(object):
         #result = Bunch.caselessDict()
         # If key = None, treat these as undefined
         for (key, val) in paramMap.items():
-            if val != None:
+            if val is not None:
                 result[key.upper()] = val
 
         # firstly, try to fill the missing parameters from DEFAULTs,
@@ -494,7 +492,7 @@ class ParameterHandler(object):
             if aa['TYPE'] == 'CHAR':
                 if 'SET' in aa:
                     s = set(aa['SET'])
-                    if  not aParamValue in s:
+                    if  aParamValue not in s:
                         message = "param with key=[%s] has value=[%s] but it is not in the acceptable value set defined in the .para file" % \
                                   (aParamKey, aParamValue)
                         self.logger.error(message)
@@ -624,7 +622,7 @@ def main(options, args):
                     for i in list(parameterMap.keys()):
                         printList= printList + (" %s=%s "%(i, parameterMap[i]))
                     fw.write(printList + "\n")
-                except (ParameterValidationException, InconsistentParameterDefinitionException) as e:
+                except (ParameterValidationException, InconsistentParameterDefinitionException):
                     pass
             fw.close()
 

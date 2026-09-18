@@ -11,7 +11,9 @@ ParaValidator -- wrapper of para file tools for use in TaskManager
 
 THIS HAS BEEN FIXED, AS FAR AS I COULD TEST IT....EJ (2008.04.21)
 """
-import os, glob, re
+import os
+import glob
+import re
 
 from g2base import Bunch
 
@@ -20,8 +22,7 @@ import oscript.parse.para_lexer as para_lexer
 from oscript.parse.para_parser import NOP, paraParser
 from oscript.DotParaFiles.DotParaFileParser import (ParameterHandler,
                                                     ParameterValidationException,
-                                                    InconsistentParameterDefinitionException,
-                                                    DotParaFileException)
+                                                    InconsistentParameterDefinitionException)
 
 # is this still needed?
 import oscript.parse.CommandParser as CommandParser
@@ -83,6 +84,16 @@ class ParaValidator(object):
         # Create paramDefs and validator from parsing the buffer.
         # (see other modules in this directory for details)
         bnch = self.para_parser.parse_buf(paraFileBuf, name=str(parakey))
+
+        # The parser recovers from most errors, so say which definition they
+        # came from--the parser's own messages don't name it
+        if bnch.errors > 0:
+            self.logger.error("%d error(s) parsing para definition for key '%s'" % (
+                bnch.errors, str(parakey)))
+            for errbnch in bnch.errinfo:
+                self.logger.error("  line %s: %s" % (errbnch.lineno,
+                                                     errbnch.errstr))
+
         validator = ParameterHandler(bnch, logger=self.logger)
 
         # Store paramdefs and validator under the passed in parakey
@@ -163,7 +174,7 @@ class ParaValidator(object):
                                      str(parakey))
 
         # Otherwise run the populator on it
-        paramDefs = self.para[parakey].paramDefs
+        self.para[parakey].paramDefs
         validator = self.para[parakey].validator
         aliases = self.para[parakey].paramAliases
 
@@ -324,7 +335,7 @@ class ParaValidator(object):
                                      str(parakey))
 
         # Otherwise run the validator on it
-        paramDefs = self.para[parakey].paramDefs
+        self.para[parakey].paramDefs
         validator = self.para[parakey].validator
 
         # Sigh...convert keys to upper case
@@ -558,8 +569,8 @@ class ParaValidator(object):
 
     def store_commandReg(self, parakey, params):
         self.commandRegMap[parakey] = Bunch.caselessDict({})
-        self.commandRegMap[parakey].update(params);
+        self.commandRegMap[parakey].update(params)
 
     def store_userReg(self, parakey, params):
-        self.userRegMap[parakey] = Bunch.caselessDict({});
-        self.userRegMap[parakey].update(params);
+        self.userRegMap[parakey] = Bunch.caselessDict({})
+        self.userRegMap[parakey].update(params)

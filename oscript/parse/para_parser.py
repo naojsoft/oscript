@@ -10,7 +10,6 @@ from g2base import Bunch
 
 from oscript.DotParaFiles import NestedException
 
-from oscript.parse import para_lexer
 
 yacc_tab_module = 'PARA_parse_tab'
 
@@ -69,7 +68,7 @@ class ParamDef(object):
         result = set([])
         for aList in self.condList:
             result = result.union(self.getParamValueList(self.defMap[aList]))
-        if not self.defaultDef is None:
+        if self.defaultDef is not None:
             result = result.union(self.getParamValueList(self.defaultDef))
         return result
 
@@ -248,12 +247,22 @@ class paraParser(object):
         t[0] = [t[1], t[3]]
 
     def p_error(self, p):
+        self.errors += 1
         if isinstance(p, LexToken):
-            self.logger.error("Syntax error at '%s'" % (p.value))
+            # NOTE: escape newlines, otherwise a NEWLINE token makes the log
+            # record span several lines
+            errstr = "Syntax error at '%s'" % (
+                str(p.value).replace('\n', '\\n'))
+            self.errinfo.append(Bunch.Bunch(lineno=p.lineno, errstr=errstr,
+                                            token=p))
+            self.logger.error(errstr)
             # ? Try to recover to some sensible state
             self.parser.errok()
         else:
-            self.logger.error("Syntax error; p=%s" % (str(p)))
+            errstr = "Syntax error; p=%s" % (str(p))
+            self.errinfo.append(Bunch.Bunch(lineno=self.lexer.lexer.lineno,
+                                            errstr=errstr, token=p))
+            self.logger.error(errstr)
             #? Try to recover to some sensible state
             self.parser.restart()
 
@@ -298,12 +307,32 @@ class paraParser(object):
 
         res = self.parser.parse(buf, lexer=self.lexer)
 
+        self.collect_lexer_errors()
+
         return res
+
+
+    def collect_lexer_errors(self):
+        """Fold any scanning errors into our own counters.
+
+        NOTE: the lexer keeps its own error count, and a scan error does not
+        abort the parse, so without this the caller would never hear about
+        the characters the scanner had to skip.
+        """
+        if self.lexer.errors > 0:
+            self.errors += self.lexer.errors
+            self.errinfo.extend(self.lexer.errinfo)
 
 
     def parse_buf(self, buf, name=''):
 
-        (paramList, paramDict) = self.parse(buf)
+        res = self.parse(buf)
+        if res is None:
+            # parser could not recover from the syntax errors in this buffer
+            raise DotParaFileException(None,
+                                       "Failed to parse para buffer '%s'" % (name))
+
+        (paramList, paramDict) = res
 
         # union together all the possible status aliases that could be
         # used in this para

@@ -32,7 +32,7 @@ class paraScanner(object):
     t_ignore = ' \t'
 
     #t_BSTR     = r'\[[\w\d ]+\]'                        # Bracketed String(can contain WS)
-    t_FSTR     = r'%([+\-]?[\d]*(\.\d*)?)?[hlL]?[sdf]'  # Formatting string for numerals
+    t_FSTR     = r'%([+\-]?[\d]*(\.\d*)?)?[hlL]?[sdfi]'  # Formatting string for numerals
     t_REGREF   = r'@[\w_][\w\d_]*'                      # 'Register' reference
     t_ALIASREF = r'![\w_][\w\d_\.]*'                    # 'Status'   reference
     t_FUNCREF  = r'\&[\w_][\w\d_\.]+\[[\s\w\d_]+\]'      # 'Function' reference
@@ -87,21 +87,28 @@ class paraScanner(object):
 
     def t_COMMENT(self, t):
         r'\#.*\n'
-        t.lineno += 1
+        # NOTE: this rule deliberately swallows the terminating newline
+        # (and does not touch self.isTokenAnID), so that a comment can appear
+        # in the middle of a backslash-continued parameter definition
+        t.lexer.lineno += 1
 
     def t_NEWLINE(self, t):
         r'\n+'
-        t.lineno += t.value.count("\n")
+        t.lexer.lineno += t.value.count("\n")
         self.isTokenAnID = True
         return t
 
     def t_LCONT(self, t):
         r'\\\n'
-        t.lineno += 1
+        t.lexer.lineno += 1
 
     def t_error(self, t):
-        self.logger.error("Illegal character in input '%s'" % (t.value[0]))
-        t.skip(1)
+        errstr = "Illegal character in input '%s'" % (t.value[0])
+        self.logger.error(errstr)
+        self.errors += 1
+        self.errinfo.append(Bunch.Bunch(lineno=t.lineno, errstr=errstr,
+                                        token=t))
+        t.lexer.skip(1)
 
     def build(self):
         self.lexer = lex.lex(object=self, debug=self._debug,
@@ -127,6 +134,11 @@ class paraScanner(object):
     def reset(self, lineno=1):
         self.errors = 0
         self.errinfo = []
+        # NOTE: these need to be reset for each buffer scanned, otherwise
+        # state left over from a previous (possibly aborted) scan will
+        # cause the first line of this one to be mis-tokenized
+        self.isTokenAnID = True
+        self.isTokenWithinParenthesis = False
         self.lexer.lineno = lineno
 
     def getTokens(self):
@@ -138,13 +150,17 @@ class paraScanner(object):
 
     # For compatibility with ply.yacc
     def input(self, input):
+        # NOTE: several rules (t_COMMENT in particular) need a terminating
+        # newline, so make sure the buffer has one
+        if not input.endswith('\n'):
+            input += '\n'
         return self.lexer.input(input)
 
     def tokenize(self, buf, startline=1):
         # Reset lexer state
         self.reset(lineno=startline)
 
-        self.lexer.input(buf)
+        self.input(buf)
         res = []
         while True:
             tok = self.lexer.token()

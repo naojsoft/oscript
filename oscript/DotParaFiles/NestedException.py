@@ -18,7 +18,7 @@ class NestedException(Exception):
             mes = str(self.exception)
         return "%s : %s\n%s" % (self.__class__.__name__,
                                 Exception.__str__(self),
-                                str(self.exception))
+                                mes)
 
     def formatStackTrace(self):
         result = self.__class__.__name__ + "\n"
