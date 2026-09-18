@@ -1,13 +1,11 @@
 """
 param_parser.py -- oscript ("skeleton") file base class parser
 """
-import sys
 import logging
 
 import ply.yacc as yacc
 from ply.lex import LexToken
 
-from oscript.parse import sk_lexer
 from oscript.parse import sk_common
 from oscript.parse.sk_common import ASTNode
 
@@ -161,10 +159,10 @@ class paramParser(object):
 
     def p_arg_list1(self, p):
         """ arg_list : expression_list COMMA kwd_params"""
-        l = list(p[1].items)
-        l.extend(p[3].items)
+        items = list(p[1].items)
+        items.extend(p[3].items)
         p[0] = ASTNode('arg_list')
-        p[0].items = l
+        p[0].items = items
 
     def p_arg_list2(self, p):
         """ arg_list : expression_list"""
@@ -266,6 +264,11 @@ class paramParser(object):
                                       debug=self._debug,
                                       tabmodule=self._parsetab,
                                       errorlog=self.logger)
+        # NOTE: p_error() recovers by calling errok()/restart() on
+        # self.parser, so it needs to name the parser that is running our
+        # grammar.  Subclasses that build a different grammar (see
+        # sk_parser.py) assign their own.
+        self.parser = self.param_parser
 
 
     def parse_params(self, buf):
@@ -281,9 +284,11 @@ class paramParser(object):
 
         except Exception as e:
             # capture traceback?  Yacc tracebacks aren't that useful
-            ast = ASTNode('ERROR: %s' % str(e))
-            # verify errors>0
-            #assert(self.errors > 0)
+            ast = self._error_ast('ERROR: %s' % str(e))
+
+        if ast is None:
+            # the parser could not recover from the errors in this buffer
+            ast = self._error_ast('ERROR: could not parse parameter list')
 
         try:
             assert(ast.tag == 'param_list')
@@ -292,4 +297,32 @@ class paramParser(object):
             # ??  We're being silent like normal parsing
             pass
 
+        self.collect_lexer_errors()
+
         return (self.errors, ast, self.errinfo)
+
+
+    def collect_lexer_errors(self):
+        """Fold any scanning errors into our own counters.
+
+        NOTE: the lexer keeps its own error count, and a scan error no longer
+        aborts the parse, so without this the caller would never hear about
+        the characters the scanner had to skip.
+        """
+        if self.lexer.errors > 0:
+            self.errors += self.lexer.errors
+            self.errinfo.extend(self.lexer.errinfo)
+
+
+    def _error_ast(self, errstr):
+        """Record 'errstr' as a parse error and return an AST node standing
+        in for the buffer we could not parse.
+        """
+        # NOTE: p_error() may not have run (a scanning error, for example),
+        # so make sure the caller sees a non-zero error count
+        if self.errors == 0:
+            self.errors += 1
+        self.errinfo.append(Bunch.Bunch(lineno=self.lexer.lexer.lineno,
+                                        errstr=errstr, token=None))
+        self.logger.error(errstr)
+        return ASTNode(errstr)

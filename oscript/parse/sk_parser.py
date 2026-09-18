@@ -1,11 +1,8 @@
 """
 sk_parser.py -- oscript ("skeleton") file parser
 """
-import sys
-import logging
 
 import ply.yacc as yacc
-from ply.lex import LexToken
 
 from oscript.parse import sk_common
 from oscript.parse.sk_common import ASTNode
@@ -33,6 +30,22 @@ class opeParser(paramParser):
 
     # --- .OPE file commands ---
 
+    def p_opebuf(self, p):
+        """opebuf : opebuf opecmd
+        """
+        p[0] = p[1]
+        p[0].append(p[2])
+
+    def p_opebuf1(self, p):
+        """opebuf : opecmd
+        """
+        p[0] = p[1]
+
+    # def p_opebuf2(self, p):
+    #     """opebuf : empty
+    #     """
+    #     p[0] = ASTNode('nop')
+
     def p_opecmd(self, p):
         """opecmd : dd_cmd
                   | abs_cmd
@@ -48,7 +61,7 @@ class opeParser(paramParser):
         p[0] = ASTNode('exec', p[2], p[3], p[4], None)
 
     def build(self):
-        self.parser = yacc.yacc(module=self, start='opecmd',
+        self.parser = yacc.yacc(module=self, start='opebuf',
                                 debug=self._debug,
                                 tabmodule=self._parsetab,
                                 errorlog=self.logger)
@@ -74,6 +87,8 @@ class opeParser(paramParser):
                                             token=None))
             self.logger.error(errstr)
 
+        self.collect_lexer_errors()
+
         return (self.errors, ast, self.errinfo)
 
 
@@ -92,12 +107,11 @@ class opeParser(paramParser):
         self.reset(lineno=startline)
 
         try:
-            ast = self.parser.parse(cmdbuf, lexer=self.lexer)
+            self.parser.parse(cmdbuf, lexer=self.lexer)
 
         except Exception as e:
             # capture traceback?  Yacc tracebacks aren't that useful
             errstr = 'ERROR: %s' % (str(e))
-            ast = ASTNode(errstr)
             # verify errors>0 ???
             #assert(self.errors > 0)
             if self.errors == 0:
@@ -106,6 +120,8 @@ class opeParser(paramParser):
                                             errstr=errstr,
                                             token=None))
             self.logger.error(errstr)
+
+        self.collect_lexer_errors()
 
         # This will hold the results
         res = Bunch.Bunch(errors=self.errors, errinfo=self.errinfo)
@@ -468,6 +484,15 @@ class skParser(paramParser):
         self.p_parser.build()
         self.param_parser = self.p_parser.param_parser
 
+    def parse_params(self, buf):
+        """Parse a bare parameter list.
+
+        NOTE: the parameter grammar belongs to self.p_parser, so its p_error()
+        records errors on that object, not on us.  Let it do the parse and
+        return its results, otherwise those errors are invisible to our caller.
+        """
+        return self.p_parser.parse_params(buf)
+
     def parse(self, buf, startline=1):
 
         # Initialize module level error variables
@@ -500,6 +525,8 @@ class skParser(paramParser):
                                             token=None))
             self.logger.error(errstr)
 
+        self.collect_lexer_errors()
+
         return (self.errors, ast, self.errinfo)
 
 
@@ -515,7 +542,7 @@ class skParser(paramParser):
         # Get the header params
         try:
             header, _2, _3 = collect_params(hdrbuf)
-        except Exception as e:
+        except Exception:
             # don't let parsing errors of the header hold us back
             # header is not really used for anything important
             header = {}

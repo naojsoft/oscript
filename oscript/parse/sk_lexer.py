@@ -6,7 +6,6 @@ import logging
 import re
 
 import ply.lex as lex
-import ply.yacc as yacc
 
 from g2base import Bunch
 
@@ -233,7 +232,6 @@ class skScanner(object):
 
     def t_LCONT(self, t):
         r'\\\n'
-        #print 'LCONT'
         #t.lineno += 1
         self.lexer.lineno += 1
 
@@ -270,11 +268,13 @@ class skScanner(object):
     def t_error(self, t):
         errstr = ("Scan error at line %d, character ('%s')" % (
             t.lineno, t.value[0]))
-        #print errstr
         self.errinfo.append(Bunch.Bunch(lineno=t.lineno, errstr=errstr,
                                         token=t))
         self.errors += 1
-        #t.skip(1)
+        # NOTE: skip the offending character and keep scanning; if we don't
+        # advance the position here ply raises a LexError and the rest of the
+        # buffer is never scanned
+        t.lexer.skip(1)
 
 
     def build(self):
@@ -307,6 +307,10 @@ class skScanner(object):
 
     # For compatibility with ply.yacc
     def input(self, buf):
+        # NOTE: t_COMMENT needs a terminating newline, so make sure the
+        # buffer has one
+        if not buf.endswith('\n'):
+            buf += '\n'
         return self.lexer.input(buf)
 
 
@@ -314,7 +318,7 @@ class skScanner(object):
         # Reset lexer state
         self.reset(lineno=startline)
 
-        self.lexer.input(buf)
+        self.input(buf)
         res = []
         while True:
             try:
@@ -323,7 +327,7 @@ class skScanner(object):
                     break
                 res.append(tok)
 
-            except lex.LexError as e:
+            except lex.LexError:
                 break
 
         return (self.errors, res, self.errinfo)
