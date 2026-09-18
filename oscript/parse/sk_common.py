@@ -70,7 +70,7 @@ def get_skparts(buf):
     raise skError("sk file contents do not match expected format")
 
 
-class ASTNode(object):
+class ASTNode:
 
     def __init__(self, tag, *args, **kwargs):
         self.serial_num = seq_num.bump()
@@ -116,7 +116,7 @@ class ASTNode(object):
         return "ASTNode('%s', %s)" % (self.tag, ", ".join([repr(i) for i in self.items]))
 
 
-class Closure(object):
+class Closure:
     def __init__(self, ast, eval):
         self.ast = ast
         self.eval = eval
@@ -125,7 +125,7 @@ class Closure(object):
         return self.eval.eval(self.ast)
 
 
-class IssueAST(object):
+class IssueAST:
     """Take an AST and turn it back into a textual string representing
     the code.
     !!!NOTE!!!
@@ -331,7 +331,7 @@ class IssueAST(object):
             return "AST(%s:[%s])" % (ast.tag, ' '.join(params))
 
 
-class SequenceNumber(object):
+class SequenceNumber:
     def __init__(self, seq_num=0):
         self.seq_num = seq_num
         self.lock = threading.RLock()

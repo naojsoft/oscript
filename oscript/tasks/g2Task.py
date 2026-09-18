@@ -30,7 +30,7 @@ class TaskCancel(g2TaskError):
     """Exception generated when a task is cancelled"""
     pass
 
-class status2dict(object):
+class status2dict:
     """ *****TEMPORARY WORKAROUND*****
     Wrapper for a gen2 status object to provide a dictionary
     interface for the para populator.
@@ -54,7 +54,7 @@ class status2dict(object):
         return True
 
 
-class frame2dict(object):
+class frame2dict:
     """ *****TEMPORARY WORKAROUND*****
     Wrapper for a gen2 frame server to provide a dictionary
     interface for the para populator.
@@ -101,7 +101,7 @@ class g2Task(Task.Task):
 
     def __init__(self, **kwdargs):
 
-        super(g2Task, self).__init__()
+        super().__init__()
 
         #self.params = Bunch.caselessDict(kwdargs)
         self.params = Bunch.Bunch(caseless=True, **kwdargs)
@@ -231,12 +231,12 @@ class g2Task(Task.Task):
         self.monitor.setvals(self.channels, self.tag, **kwdargs)
 
     def start(self):
-        super(g2Task, self).start()
+        super().start()
 
         self.setMy(task_start=self.starttime)
 
     def initialize(self, parentTask, **kwdargs):
-        tag = super(g2Task, self).initialize(parentTask, **kwdargs)
+        tag = super().initialize(parentTask, **kwdargs)
 
         return tag
 
@@ -263,7 +263,7 @@ class g2Task(Task.Task):
 
         # NOTE: if we could call this BEFORE the above then we could
         # use self.endtime, but there is a race condition somwehere?
-        res = super(g2Task, self).done(result, **kwdargs)
+        res = super().done(result, **kwdargs)
 
         self.logger.debug("Task finishing: %s" % (self.tag))
         return res
@@ -558,7 +558,7 @@ class INSintTask(g2Task):
         self.parakey = parakey
         self.cmd_str = ''
 
-        super(INSintTask, self).__init__(**kwdargs)
+        super().__init__(**kwdargs)
 
     def start(self):
         self.logger.debug("Task starting: %s" % self.tag)
@@ -621,7 +621,7 @@ class TCSintNativeTask(g2Task):
         self.cmd_str = cmdString
         self.svcname = svcname
 
-        super(TCSintNativeTask, self).__init__(**kwdargs)
+        super().__init__(**kwdargs)
 
     def start(self):
         self.logger.debug("Task starting: %s" % self.tag)

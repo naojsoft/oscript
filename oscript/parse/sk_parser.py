@@ -22,7 +22,7 @@ class opeParser(paramParser):
 
     def __init__(self, lexer, logger=None,
                  debug=False, parsetab='ope_command_parse_tab'):
-        super(opeParser, self).__init__(lexer, logger=logger,
+        super().__init__(lexer, logger=logger,
                                         debug=debug, parsetab=parsetab)
 
         self.tokens.remove('UMINUS')
@@ -149,7 +149,7 @@ class skParser(paramParser):
 
     def __init__(self, lexer, logger=None,
                  debug=False, parsetab='sk_parse_tab'):
-        super(skParser, self).__init__(lexer, logger=logger,
+        super().__init__(lexer, logger=logger,
                                        debug=debug, parsetab=parsetab)
 
         self.tokens.remove('UMINUS')

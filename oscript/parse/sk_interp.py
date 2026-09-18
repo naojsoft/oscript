@@ -35,7 +35,7 @@ def get_subsys(obe_id, obe_mode):
 # SKELETON FILE LOOKUP, PARSING & CACHING
 ##############################################################
 
-class skBank(object):
+class skBank:
     """This kind of object abstracts the lookup and creation of the
     skeleton files ASTs.
     """
@@ -148,7 +148,7 @@ def make_closure(ast, eval):
 
 class LazyDict(dict):
     def __getitem__(self, key):
-        val = super(LazyDict, self).__getitem__(key)
+        val = super().__getitem__(key)
         if isinstance(val, Closure):
             return val.thaw()
         else:
@@ -156,7 +156,7 @@ class LazyDict(dict):
 
 
 count = 1
-class VariableResolver(object):
+class VariableResolver:
     def __init__(self, params):
         global count
         self.variable_map = Bunch.caselessDict(params)
@@ -210,7 +210,7 @@ class VariableResolver(object):
         return VariableResolver(self.variable_map)
 
 
-class RegisterResolver(object):
+class RegisterResolver:
     def __init__(self):
         self.special_keys = ['SYSTEM', 'USER', 'COMMAND', 'STATUS']
         rib = Bunch.caselessDict()
@@ -248,14 +248,14 @@ class RegisterResolver(object):
         rr.ribs = list(self.ribs)
         return rr
 
-class StatusResolver(object):
+class StatusResolver:
     def __init__(self, statusObj):
         self.statusObj = statusObj
 
     def get(self, alias):
         return self.statusObj.fetchOne(alias)
 
-class FrameSource(object):
+class FrameSource:
     def __init__(self, frameObj):
         self.frameObj = frameObj
 
@@ -282,11 +282,11 @@ class FrameSource(object):
             frames = self.frameObj.getFrames(instname, frametype, count)
             return '%s:%04d' % (frames[0], len(frames))
 
-class MockRegisterResolver(object):
+class MockRegisterResolver:
     def get(self, alias):
         raise skError("Illegal register fetch in decoding!")
 
-class MockFrameSource(object):
+class MockFrameSource:
     def __init__(self):
         self.count = 1
         self.insconfig = INSconfig()
@@ -310,7 +310,7 @@ class MockFrameSource(object):
         self.count += count
         return frameid
 
-class MockStatusResolver(object):
+class MockStatusResolver:
     def __init__(self, statusDict):
         self.statusDict = statusDict
     def get(self, alias):
@@ -321,7 +321,7 @@ class MockStatusResolver(object):
                 alias))
 
 
-class Evaluator(object):
+class Evaluator:
     """Expressions need to be evaluated run time.  This class is a utility
     to evaluate the expression ast and return the value.
     """
@@ -699,7 +699,7 @@ class Evaluator(object):
 # DECODER
 ##############################################################
 
-class Decoder(object):
+class Decoder:
     """
     NOTES.
     [1] This should expand to nothing, but our decoder design always returns
@@ -723,7 +723,7 @@ class Decoder(object):
 
         self.nop = ASTNode('nop')
 
-        super(Decoder, self).__init__()
+        super().__init__()
 
 
     def decode(self, ast, eval):

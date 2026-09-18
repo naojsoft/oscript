@@ -24,7 +24,7 @@ class CommandParserError(Exception):
     pass
 
 
-class CommandParser(object):
+class CommandParser:
     """This class provides methods for tokenizing and parsing SOSS-style
     commands; e.g.
        EXEC SUBSYS COMMAND PARAM1=VAL1 PARAM2=VAL2 ...

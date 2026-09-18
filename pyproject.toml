@@ -74,5 +74,6 @@ extend-exclude = [
 ]
 
 [tool.ruff.lint]
-# the default rule set: pycodestyle errors and pyflakes
-select = ["E4", "E7", "E9", "F"]
+# the default rule set (pycodestyle errors and pyflakes), plus the two
+# pyupgrade rules that keep python 2 class and super() style from coming back
+select = ["E4", "E7", "E9", "F", "UP004", "UP008"]

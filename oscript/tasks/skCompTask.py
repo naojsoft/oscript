@@ -31,7 +31,7 @@ class skCompTask(g2Task.g2Task):
     """
 
     def __init__(self, *args, **kwdargs):
-        super(skCompTask, self).__init__(*args, **kwdargs)
+        super().__init__(*args, **kwdargs)
 
         self._stack = []
 

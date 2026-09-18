@@ -28,7 +28,7 @@ class Ins2Task(g2Task.g2Task):
         self.cmdname = cmdname.lower()
         self.parakey = (svcname, cmdname.upper())
 
-        super(Ins2Task, self).__init__(**kwdargs)
+        super().__init__(**kwdargs)
 
 
     def start(self):

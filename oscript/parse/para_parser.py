@@ -20,7 +20,7 @@ class NoDefaultParameterDefinitonException(DotParaFileException):
     pass
 
 
-class ParamDef(object):
+class ParamDef:
     def __init__(self, name):
         self.name = name
         self.condList = []
@@ -105,7 +105,7 @@ class ParamDef(object):
         return self.__repr__()
 
 #Marker object
-class NOPObject(object):
+class NOPObject:
     def __str__(self):
         return 'NOP'
 
@@ -119,7 +119,7 @@ NOP = NOPObject()
 class paraParseError(Exception):
     pass
 
-class paraParser(object):
+class paraParser:
 
 ##     def p_object_def1(self, t):
 ##         '''object_def : object_def  param_def_line'''

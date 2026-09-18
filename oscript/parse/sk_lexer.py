@@ -17,7 +17,7 @@ num_re = re.compile(r'^[0-9]+(\.\d*)?$')
 class skScanError(sk_common.skError):
     pass
 
-class skScanner(object):
+class skScanner:
 
     tokens = (
               'ID',
@@ -282,7 +282,7 @@ class skScanner(object):
                              debug=self._debug, lextab=self._lextab)
 
     def __init__(self, logger=None, debug=False, lextab='sk_scan_tab'):
-        super(skScanner, self).__init__()
+        super().__init__()
 
         if not logger:
             logger = logging.getLogger('sk.lexer')

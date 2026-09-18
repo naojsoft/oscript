@@ -29,7 +29,7 @@ from g2base import ssdlog
 class GetAliasesLexer(TestSkLexer):
 
     def __init__(self, *args, **kwdargs):
-        super(GetAliasesLexer, self).__init__(*args, **kwdargs)
+        super().__init__(*args, **kwdargs)
 
         self.aliases = set([])
 
@@ -55,7 +55,7 @@ class GetAliasesLexer(TestSkLexer):
 class GetAliasesParser(TestSkParser):
 
     def __init__(self, *args, **kwdargs):
-        super(GetAliasesParser, self).__init__(*args, **kwdargs)
+        super().__init__(*args, **kwdargs)
 
         self.aliases = set([])
 

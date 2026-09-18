@@ -50,7 +50,7 @@ def force(val):
 class myIssueAST(sk_common.IssueAST):
 
     def issue_exec(self, ast):
-        res = super(myIssueAST, self).issue_exec(ast)
+        res = super().issue_exec(ast)
         return self.tag_node(ast, res)
 
     def tag_node(self, ast, res):
@@ -97,7 +97,7 @@ class skExecutorTask(g2Task.g2Task):
         # Wait for results before starting next task?
         self.waitflag = waitflag
 
-        super(skExecutorTask, self).__init__()
+        super().__init__()
 
 
     def execute(self):
@@ -229,7 +229,7 @@ class interpTask(g2Task.g2Task):
         self.ast_default_params = ast_default_params
 
         # (This will save params to self.params)
-        super(interpTask, self).__init__(**params)
+        super().__init__(**params)
 
 
     def execute(self):
@@ -982,7 +982,7 @@ class execTask(interpTask):
 
         ast = ast.items[0]
 
-        super(execTask, self).__init__(ast, sk_bank, {},
+        super().__init__(ast, sk_bank, {},
                                        ast_default_params=ast_params)
 
 
@@ -1030,7 +1030,7 @@ class skTask(interpTask):
         (ast_default_params, ast_body) = ast_skel.items
 
         # Rest of the work is done by parent class
-        super(skTask, self).__init__(ast_body, sk_bank, params,
+        super().__init__(ast_body, sk_bank, params,
                                      ast_default_params=ast_default_params)
 
 
@@ -1056,7 +1056,7 @@ class skTask(interpTask):
         self.store(statusDict)
 
         # Rest of the work is done by parent class
-        return super(skTask, self).execute()
+        return super().execute()
 
 
 

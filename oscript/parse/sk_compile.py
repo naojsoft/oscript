@@ -24,7 +24,7 @@ def get_subsys(obe_id, obe_mode):
 # COMPILER
 ##############################################################
 
-class SkCompiler(object):
+class SkCompiler:
     """
     """
     def __init__(self, sk_bank, logger, append_mode=False):
@@ -42,7 +42,7 @@ class SkCompiler(object):
 
         self.count = 1
 
-        super(SkCompiler, self).__init__()
+        super().__init__()
 
 
     def compile_skeleton(self, obe_id, obe_mode, abscmd):
@@ -358,7 +358,7 @@ class SkCompiler(object):
         self.buf.write('):\n')
 
         self.buf.write(' ' * (indent+4))
-        self.buf.write('super(%s, self).__init__(' % (classname))
+        self.buf.write('super().__init__(')
         self.buf.write('%s)\n' % ', '.join(['%s=%s' % (n, n) for n in pinfo.paramList]))
 
         assert (ast_body.tag == 'command_section') and (

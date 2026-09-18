@@ -133,7 +133,7 @@ class ParameterHandlerValidationTestCase(unittest.TestCase):
             logger.debug(e.formatStackTrace())
             pass
 
-class FakeStatusMap(object):
+class FakeStatusMap:
     """Stands in for the Gen2 status proxy expected by populate(): fetch()
     fills in the value for each alias it is handed.
     """

@@ -31,7 +31,7 @@ import oscript.parse.CommandParser as CommandParser
 class ParaValidatorError(Exception):
     pass
 
-class ParaValidator(object):
+class ParaValidator:
 
     def __init__(self, logger):
         self.logger = logger

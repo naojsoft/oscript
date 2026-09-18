@@ -23,7 +23,7 @@ yacc_tab_module = 'param_parse_tab'
 class skParseError(sk_common.skError):
     pass
 
-class paramParser(object):
+class paramParser:
 
     precedence = (
         ('left', 'AND', 'OR'),
@@ -36,7 +36,7 @@ class paramParser(object):
 
     def __init__(self, lexer, logger=None,
                  debug=False, parsetab=yacc_tab_module):
-        super(paramParser, self).__init__()
+        super().__init__()
 
         if not logger:
             logger = logging.getLogger('sk.parser')

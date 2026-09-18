@@ -16,7 +16,7 @@ lex_tab_module = 'PARA_scan_tab'
 class paraScanError(Exception):
     pass
 
-class paraScanner(object):
+class paraScanner:
 
     tokens = ('EQ', 'LPAREN', 'RPAREN', 'COMMA', 'NEWLINE',
               'ID', 'STR', 'QSTR', 'LSTR', 'FSTR', 'REGREF',

@@ -77,11 +77,11 @@ class ParameterValueRangeValidationException(ParameterValidationException):
         self.minValue = minValue
         self.maxValue = maxValue
 
-class AliasWrapper(object):
+class AliasWrapper:
     def __init__(self, alias):
         self.alias = alias
 
-class ParameterHandler(object):
+class ParameterHandler:
     def __init__(self, paramObj, logger=None):
         self.paramObj = paramObj
         self.paramDefMap = paramObj.paramDict
