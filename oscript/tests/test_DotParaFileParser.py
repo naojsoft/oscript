@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # test_DotParaFileParser.py
 
-import unittest, sys
+import unittest
 import logging
 import re
 
@@ -84,8 +84,8 @@ class ParameterHandlerValidationTestCase(unittest.TestCase):
 
     def testNopRejected(self):
         try:
-            result = self.validator.validate({'POSITION': 'NOP', 'MOTOR': 'ON', 'F_SELECT': 'NS_IR', 'COORD': 'REL'})
-            fail('The NOP parameter is for Position is notdefined and should have thrown exception')
+            self.validator.validate({'POSITION': 'NOP', 'MOTOR': 'ON', 'F_SELECT': 'NS_IR', 'COORD': 'REL'})
+            self.fail('The NOP parameter is for Position is notdefined and should have thrown exception')
         except ParameterValidationException as e:
             logger.debug(repr(e))
             logger.debug(e.formatStackTrace())
@@ -100,8 +100,8 @@ class ParameterHandlerValidationTestCase(unittest.TestCase):
 
     def testValueRejected(self):
         try:
-            result = self.validator.validate({'POSITION': '400', 'MOTOR': 'ON', 'F_SELECT': 'NS_IR', 'COORD': 'REL'})
-            fail('The value for Position is out of range and should have thrown exception')
+            self.validator.validate({'POSITION': '400', 'MOTOR': 'ON', 'F_SELECT': 'NS_IR', 'COORD': 'REL'})
+            self.fail('The value for Position is out of range and should have thrown exception')
         except ParameterValidationException as e:
             logger.debug(repr(e))
             logger.debug(e.formatStackTrace())
@@ -126,12 +126,25 @@ class ParameterHandlerValidationTestCase(unittest.TestCase):
 
     def testPythonValueRejected(self):
         try:
-            result = self.validator.validate({'POSITION': 151, 'MOTOR': 'ON', 'F_SELECT': 'NS_IR', 'COORD': 'ABS'})
-            fail('The value for Position is out of range and should have thrown exception')
+            self.validator.validate({'POSITION': 151, 'MOTOR': 'ON', 'F_SELECT': 'NS_IR', 'COORD': 'ABS'})
+            self.fail('The value for Position is out of range and should have thrown exception')
         except ParameterValidationException as e:
             logger.debug(repr(e))
             logger.debug(e.formatStackTrace())
             pass
+
+class FakeStatusMap(object):
+    """Stands in for the Gen2 status proxy expected by populate(): fetch()
+    fills in the value for each alias it is handed.
+    """
+    def __init__(self, values):
+        self.values = values
+
+    def fetch(self, statusDict):
+        for alias in statusDict.keys():
+            statusDict[alias] = self.values.get(alias, None)
+        return statusDict
+
 
 class ParameterHandlerPopulateTestCase(unittest.TestCase):
     def setUp(self):
@@ -146,7 +159,7 @@ class ParameterHandlerPopulateTestCase(unittest.TestCase):
             '''
             POSITION=NOP is not allowed here
             '''
-            result = self.validator.populate({'POSITION':'NOP', 'MOTOR': 'ON', 'F_SELECT': 'NS_IR', 'COORD': 'REL', 'FOO':'5.0' })
+            self.validator.populate({'POSITION':'NOP', 'MOTOR': 'ON', 'F_SELECT': 'NS_IR', 'COORD': 'REL', 'FOO':'5.0' })
             self.fail("should not reach here")
         except InconsistentParameterDefinitionException as e:
             logger.debug(str(e))
@@ -159,11 +172,11 @@ class ParameterHandlerPopulateTestCase(unittest.TestCase):
 
     def testPopulateWithNOP2(self):
         result = self.validator.populate({'POSITION':'NOP', 'MOTOR': 'ON', 'F_SELECT': 'NS_IR', 'COORD': 'ABS', 'FOO':'5.0'})
-        self.assertEquals(NOP, result['POSITION'])
+        self.assertEqual(NOP, result['POSITION'])
 
     def testPopulateWithDefaultValue(self):
         result = self.validator.populate({'POSITION':'NOP',  'F_SELECT': 'NS_IR', 'COORD': 'ABS', 'FOO':'5.0'})
-        self.assertEquals('ON', result['MOTOR'])
+        self.assertEqual('ON', result['MOTOR'])
 
     def testPopulateWithDefaultValueForNOP(self):
         '''
@@ -171,16 +184,49 @@ class ParameterHandlerPopulateTestCase(unittest.TestCase):
         the defualt should result to NOP
         '''
         result = self.validator.populate({'POSITION':'NOP',  'COORD': 'ABS', 'FOO':'5.0'})
-        self.assertEquals(NOP, result['F_SELECT'])
+        self.assertEqual(NOP, result['F_SELECT'])
 
     def testPopulateWithDefaultValueForStatus(self):
-        result = self.validator.populate({'POSITION':'NOP',  'COORD': 'ABS'}, statusMap = {'TSCL.BAR':'150'})
-        self.assertEquals(150.0, result['FOO'])
+        statusMap = FakeStatusMap({'TSCL.BAR': '150'})
+        result = self.validator.populate({'POSITION':'NOP',  'COORD': 'ABS'},
+                                         statusMap=statusMap,
+                                         statusAliases=self.paramObj.paramAliases)
+        self.assertEqual(150.0, result['FOO'])
 
-    def testPopulateWithDefaultValueForRegister(self):
-        result = self.validator.populate({'POSITION':'+100',  'COORD': 'REL'}, systemRegMap = {'FOO':120})
-        logger.debug("after populating values %s" % str(result))
-        self.assertEquals(120.0, result['FOO'])
+    def testPopulateWithCircularSystemDefault(self):
+        """FOO's unconditional definition has DEFAULT=@SYSTEM, and @SYSTEM
+        resolves to the DEFAULT, so filling it in is circular and is
+        rejected (see fillDefaultValues).
+        """
+        try:
+            self.validator.populate({'POSITION':'+100', 'COORD': 'REL'},
+                                             statusMap=FakeStatusMap({}),
+                                             statusAliases=self.paramObj.paramAliases)
+            self.fail("should not reach here")
+        except InconsistentParameterDefinitionException as e:
+            logger.debug(str(e))
+            self.assertEqual('FOO', e.offendingKey)
+
+
+class SystemRegisterTestCase(unittest.TestCase):
+    """@SYSTEM as a NOP value: it resolves to the parameter's own DEFAULT."""
+
+    t_str = """GAIN TYPE=NUMBER FORMAT=%d DEFAULT=7 NOP=@SYSTEM\n"""
+
+    def setUp(self):
+        self.lexer = para_lexer.paraScanner(logger=logger, debug=False)
+        self.parser = paraParser(self.lexer, logger=logger, debug=False)
+
+        self.paramObj = self.parser.parse_buf(SystemRegisterTestCase.t_str)
+        self.validator = ParameterHandler(self.paramObj)
+
+    def testNopResolvesToDefault(self):
+        result = self.validator.populate({'GAIN': 'NOP'})
+        self.assertEqual(7, result['GAIN'])
+
+    def testValueIsKept(self):
+        result = self.validator.populate({'GAIN': '3'})
+        self.assertEqual(3, result['GAIN'])
 
 
 class FuncRefTestCase(unittest.TestCase):
@@ -209,8 +255,8 @@ FRAME9 TYPE=CHAR DEFAULT=&GET_F_NO[SPCAM A] NOP=NOP
         paramObj = parser.parse_buf(FuncRefTestCase.funcref_sample)
         paramDefs = paramObj.paramDict
         f1 = paramDefs['FRAME1'].getParamDefForParamMap()
-        self.assertEquals('&GET_F_NO[SPCAM A]', f1['DEFAULT'])
-        self.assertEquals('NOP', f1['NOP'])
+        self.assertEqual('&GET_F_NO[SPCAM A]', f1['DEFAULT'])
+        self.assertEqual('NOP', f1['NOP'])
 
 class TestParaFileParse(unittest.TestCase):
     def testParse(self):
@@ -218,8 +264,7 @@ class TestParaFileParse(unittest.TestCase):
         lexer = para_lexer.paraScanner(logger=logger, debug=False)
         parser = paraParser(lexer, logger=logger, debug=False)
 
-        paramObj = parser.parse_buf(t_str)
-        paramDefs = paramObj.paramDict
+        parser.parse_buf(t_str)
 
 class TestNumericFormatString(unittest.TestCase):
     def testParse1(self):
@@ -306,7 +351,7 @@ class NOPTestCase(unittest.TestCase):
         ex = paramDefs['UNIT']
         self.assertEqual('NOP', ex.getParamDefForParamMap()['DEFAULT'])
         self.assertEqual('NOP', ex.getParamDefForParamMap()['NOP'])
-        self.assert_(not (ex.getParamDefForParamMap()['SET']).__contains__('NOP'))
+        self.assertTrue(not (ex.getParamDefForParamMap()['SET']).__contains__('NOP'))
 
 class DomainExceptionsTestCase(unittest.TestCase):
     def testInconsistentParameterDefinitionException(self):
@@ -325,9 +370,9 @@ class DomainExceptionsTestCase(unittest.TestCase):
             inner()
         except DotParaFileException as e:
             lines = str(e).split('\n')
-            self.assert_(re.match(r'(\w+\s*:\s*)?something else happened',  lines[0]))
-            self.assert_(re.match(r'(\w+\s*:\s*)?something happened',  lines[1]))
-            self.assert_(re.match(r'(\w+\s*:\s*)?hello',  lines[2]))
+            self.assertTrue(re.match(r'(\w+\s*:\s*)?something else happened',  lines[0]))
+            self.assertTrue(re.match(r'(\w+\s*:\s*)?something happened',  lines[1]))
+            self.assertTrue(re.match(r'(\w+\s*:\s*)?hello',  lines[2]))
 
 if __name__ == '__main__':
     unittest.main()
